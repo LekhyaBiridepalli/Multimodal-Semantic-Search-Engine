@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>TKAG-RAG | Next-Gen Knowledge Synthesis</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome 6 (Free) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- Bootstrap 5 (for structure, quickly overridden) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- AOS Animation -->
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        /* ---------- VIBRANT GLOBAL RESET ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-deep: #0b0e1a;
+            --bg-surface: rgba(18, 22, 45, 0.85);
+            --glass-border: rgba(0, 255, 255, 0.25);
+            --neon-cyan: #00f5ff;
+            --neon-magenta: #ff44ec;
+            --electric-violet: #8b5cf6;
+            --sunset-orange: #ff7b2c;
+            --text-bright: #f0f3ff;
+            --text-dim: #b0b8e0;
+            --card-glow: 0 25px 45px -12px rgba(0, 245, 255, 0.25);
+            --grad-1: linear-gradient(135deg, #00f5ff, #ff44ec);
+            --grad-2: linear-gradient(135deg, #ff7b2c, #ff44ec);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 10% 20%, #0a0c18, #03050c);
+            color: var(--text-bright);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* animated noise overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg, rgba(0,255,255,0.02) 0px, rgba(255,68,236,0.02) 2px, transparent 3px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* glassmorphism + neon border */
+        .glass-card {
+            background: rgba(12, 16, 35, 0.6);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 2rem;
+            transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .glass-card:hover {
+            border-color: var(--neon-magenta);
+            box-shadow: var(--card-glow);
+            transform: translateY(-5px);
+        }
+
+        .gradient-text {
+            background: linear-gradient(120deg, #00f5ff, #ff44ec, #ff7b2c);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+            animation: shimmer 5s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        /* buttons */
+        .btn-neon {
+            background: linear-gradient(90deg, #00f5ff, #ff44ec);
+            border: none;
+            padding: 0.8rem 2rem;
+            border-radius: 3rem;
+            font-weight: 700;
+            color: #0a0c18;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px rgba(0,245,255,0.4);
+        }
+
+        .btn-neon:hover {
+            transform: scale(1.03);
+            box-shadow: 0 0 25px rgba(255,68,236,0.6);
+            color: white;
+        }
+
+        .btn-outline-glow {
+            background: transparent;
+            border: 2px solid var(--neon-cyan);
+            border-radius: 3rem;
+            padding: 0.7rem 1.8rem;
+            font-weight: 600;
+            color: var(--neon-cyan);
+            transition: 0.25s;
+        }
+
+        .btn-outline-glow:hover {
+            background: rgba(0,245,255,0.15);
+            box-shadow: 0 0 12px cyan;
+            color: white;
+        }
+
+        /* navbar */
+        .navbar-custom {
+            background: rgba(6, 8, 20, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(0,245,255,0.2);
+            padding: 0.8rem 0;
+        }
+
+        .nav-link-custom {
+            color: #cbd5ff !important;
+            font-weight: 500;
+            margin: 0 0.5rem;
+            transition: 0.2s;
+        }
+
+        .nav-link-custom:hover, .nav-link-custom.active {
+            color: var(--neon-cyan) !important;
+            text-shadow: 0 0 6px cyan;
+        }
+
+        /* hero live indicator */
+        .live-pulse {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0,245,255,0.12);
+            padding: 0.3rem 1rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .pulse-dot {
+            width: 10px;
+            height: 10px;
+            background: #00ffc3;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 #00ffc3;
+            animation: pulse-ring 1.8s infinite;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 1; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+
+        /* stat cards */
+        .stat-glow {
+            background: rgba(20, 25, 55, 0.65);
+            backdrop-filter: blur(10px);
+            border-radius: 1.5rem;
+            padding: 1.3rem;
+            text-align: center;
+            border: 1px solid rgba(0,245,255,0.3);
+            transition: 0.2s;
+        }
+        .stat-glow:hover {
+            border-color: #ff44ec;
+        }
+
+        .topic-chip {
+            background: rgba(0,245,255,0.1);
+            border-radius: 2rem;
+            padding: 0.5rem 1.3rem;
+            font-weight: 500;
+            transition: 0.2s;
+            cursor: pointer;
+            border: 1px solid transparent;
+        }
+
+        .topic-chip:hover {
+            background: rgba(255,68,236,0.2);
+            border-color: #ff44ec;
+            transform: scale(1.02);
+        }
+
+        /* timeline for history */
+        .timeline-modern {
+            border-left: 3px solid var(--neon-cyan);
+            margin-left: 1rem;
+            padding-left: 1.5rem;
+        }
+        .history-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 1rem;
+            padding: 0.9rem;
+            margin-bottom: 0.8rem;
+            transition: 0.2s;
+        }
+        .history-item:hover {
+            background: rgba(0,245,255,0.08);
+            transform: translateX(5px);
+        }
+
+        /* form inputs */
+        .input-glow {
+            background: rgba(15, 20, 45, 0.7);
+            border: 1px solid rgba(0,245,255,0.4);
+            border-radius: 2rem;
+            padding: 0.8rem 1.5rem;
+            color: white;
+            width: 100%;
+            transition: 0.2s;
+        }
+        .input-glow:focus {
+            outline: none;
+            border-color: #ff44ec;
+            box-shadow: 0 0 15px rgba(255,68,236,0.3);
+        }
+
+        .progress-bar-custom {
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #00f5ff, #ff44ec);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+        }
+
+        footer {
+            background: rgba(6, 8, 20, 0.8);
+            border-top: 1px solid rgba(0,245,255,0.2);
+        }
+
+        @media (max-width: 768px) {
+            .glass-card { border-radius: 1.5rem; }
+            .display-4 { font-size: 2.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== VIBRANT NAVBAR ==================== -->
+<nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold fs-3" href="#">
+            <i class="fas fa-brain me-2" style="color: #00f5ff;"></i>
+            <span class="gradient-text">TKAG-RAG</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+            <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navMain">
+            <ul class="navbar-nav ms-auto align-items-center gap-2">
+                <li class="nav-item"><a class="nav-link nav-link-custom" href="#" data-page="home">Home</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-custom" href="#" data-page="generate">Generate</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-custom" href="#" data-page="history">History</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-custom" href="#" data-page="stats">Stats</a></li>
+                <li class="nav-item"><a class="nav-link nav-link-custom" href="#" data-page="profile">Profile</a></li>
+                <li class="nav-item ms-lg-3"><button class="btn-neon" id="loginBtnNav"><i class="fas fa-rocket me-1"></i> Login</button></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container pt-5 mt-5" id="appRoot">
+    <!-- DYNAMIC CONTENT WILL RENDER HERE -->
+    <div id="pageContent"></div>
+</main>
+
+<footer class="mt-5 py-4 text-center">
+    <div class="container">
+        <p class="text-light-50 mb-0">⚡ <span class="gradient-text">TKAG-RAG</span> — Real‑time Temporal Knowledge Graph & RAG Engine</p>
+        <small class="text-secondary">© 2025 • Instant knowledge synthesis from 15+ sources</small>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+    // ---------- INIT AOS + HELPER ----------
+    AOS.init({ duration: 700, once: true, offset: 50 });
+
+    // MOCK DATA / STATE
+    let currentUser = { loggedIn: false, username: "Guest", fullName: "", isAdmin: false };
+    let mockSearches = [
+        { id: 1, keyword: "Quantum Computing", date: "2025-03-20", time: "14:32", status: "completed", views: 124, isFavorite: true, execution_time: 4.2 },
+        { id: 2, keyword: "Neural Networks", date: "2025-03-18", time: "09:15", status: "completed", views: 89, isFavorite: false, execution_time: 3.7 },
+        { id: 3, keyword: "Blockchain Scalability", date: "2025-03-15", time: "22:10", status: "completed", views: 210, isFavorite: true, execution_time: 5.1 },
+        { id: 4, keyword: "Generative AI", date: "2025-03-10", time: "11:05", status: "completed", views: 450, isFavorite: false, execution_time: 4.8 }
+    ];
+    let userStats = {
+        totalSearches: 12,
+        favorites: 2,
+        avgTime: 4.2,
+        totalViews: 873,
+        topKeywords: ["Quantum Computing", "Neural Networks", "LLMs", "Python", "Blockchain"]
+    };
+    let currentPage = "home";
+
+    // Helper: show toast
+    function showToast(msg, type = "info") {
+        const toastDiv = document.createElement("div");
+        toastDiv.className = "position-fixed bottom-0 end-0 p-3 z-3";
+        toastDiv.style.zIndex = "9999";
+        toastDiv.innerHTML = `
+            <div class="toast align-items-center text-white bg-dark border-0 show" role="alert">
+                <div class="d-flex"><div class="toast-body">${msg}</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>
+            </div>`;
+        document.body.appendChild(toastDiv);
+        setTimeout(() => toastDiv.remove(), 3200);
+    }
+
+    // favorite toggle
+    function toggleFavorite(id) {
+        let item = mockSearches.find(s => s.id === id);
+        if (item) {
+            item.isFavorite = !item.isFavorite;
+            showToast(item.isFavorite ? "⭐ Added to favorites" : "♡ Removed from favorites", "success");
+            renderCurrentPage();
+        }
+    }
+
+    function deleteSearch(id) {
+        if (confirm("Permanently delete this search?")) {
+            mockSearches = mockSearches.filter(s => s.id !== id);
+            showToast("Search deleted", "info");
+            renderCurrentPage();
+        }
+    }
+
+    // fake generation
+    function generateKnowledge(topic) {
+        if (!topic.trim()) { showToast("Enter a topic first!", "warning"); return false; }
+        showToast(`🚀 Synthesizing "${topic}" from 15 sources...`, "info");
+        setTimeout(() => {
+            const newId = Date.now();
+            mockSearches.unshift({
+                id: newId,
+                keyword: topic,
+                date: new Date().toISOString().slice(0,10),
+                time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
+                status: "completed",
+                views: 1,
+                isFavorite: false,
+                execution_time: (Math.random() * 3 + 2).toFixed(1)
+            });
+            showToast(`✅ Knowledge pack for "${topic}" ready!`, "success");
+            renderCurrentPage();
+        }, 1200);
+        return true;
+    }
+
+    // HTML TEMPLATES (VIBRANT)
+    const pages = {
+        home: () => `
+            <div class="row align-items-center min-vh-75 mb-5" data-aos="fade-up">
+                <div class="col-lg-6">
+                    <div class="live-pulse mb-3"><span class="pulse-dot"></span> <span>Live Temporal Graph • 1,283 queries today</span></div>
+                    <h1 class="display-3 fw-extrabold">Supercharge your<br><span class="gradient-text">Knowledge Synthesis</span></h1>
+                    <p class="lead fs-4 my-4 text-light-50">TKAG‑RAG fuses YouTube, books, ArXiv → temporal graphs + stunning reports in seconds.</p>
+                    <div class="d-flex gap-3 flex-wrap">
+                        <button class="btn-neon" id="quickGenerateBtn"><i class="fas fa-bolt me-2"></i> Start Generating</button>
+                        <button class="btn-outline-glow" id="demoDashboardBtn"><i class="fas fa-chart-line me-2"></i> Live Dashboard</button>
+                    </div>
+                    <div class="row mt-5 g-3">
+                        <div class="col-4"><div class="stat-glow"><h3 class="gradient-text">12.4K</h3><small>Knowledge Packs</small></div></div>
+                        <div class="col-4"><div class="stat-glow"><h3 class="gradient-text">7.8K</h3><small>Active Users</small></div></div>
+                        <div class="col-4"><div class="stat-glow"><h3 class="gradient-text">25+</h3><small>Sources/Topic</small></div></div>
+                    </div>
+                </div>
+                <div class="col-lg-6 mt-4 mt-lg-0 text-center">
+                    <div class="glass-card p-4"><i class="fas fa-project-diagram fa-6x gradient-text" style="font-size: 8rem;"></i><p class="mt-3">Temporal Knowledge Graph | Real-time RAG</p></div>
+                </div>
+            </div>
+            <div class="row mt-5">
+                <div class="col-12 text-center"><h2 class="gradient-text fw-bold">⚡ Trending Topics ⚡</h2></div>
+                ${["Large Language Models", "Edge AI", "RAG Systems", "Diffusion Models", "Web3"].map(t => `<div class="col-md-2 col-6 mb-3"><div class="topic-chip text-center" data-topic="${t}">${t}</div></div>`).join('')}
+            </div>
+        `,
+        generate: () => `
+            <div class="row justify-content-center" data-aos="fade-up">
+                <div class="col-lg-8">
+                    <div class="glass-card p-4 p-md-5">
+                        <h2 class="text-center fw-bold"><i class="fas fa-magic me-2 gradient-text"></i> Generate Knowledge Pack</h2>
+                        <p class="text-center text-secondary">Any topic — real synthesis from videos, books, research papers</p>
+                        <div class="mt-4">
+                            <input type="text" id="genTopic" class="input-glow" placeholder="e.g., Reinforcement Learning, Climate Tech, Quantum Gravity">
+                            <div class="d-flex justify-content-center mt-4"><button class="btn-neon px-5 py-3" id="doGenerateBtn"><i class="fas fa-brain me-2"></i> Synthesize Now</button></div>
+                        </div>
+                        <div class="progress-bar-custom mt-4 d-none" id="genProgress"><div class="progress-fill" id="genFill"></div></div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mt-5">
+                <div class="col-12"><h4 class="gradient-text">🔥 Popular topics to explore</h4></div>
+                ${["Generative AI", "Temporal Graphs", "Neuroscience", "Sustainable Energy", "Space Tech"].map(t => `<div class="col-auto mb-2"><span class="topic-chip" data-topic="${t}">${t}</span></div>`).join('')}
+            </div>
+        `,
+        history: () => `
+            <div class="d-flex justify-content-between align-items-center flex-wrap mb-4">
+                <h1 class="fw-bold"><i class="fas fa-history me-3 gradient-text"></i>Your <span class="gradient-text">Knowledge History</span></h1>
+                <button class="btn-outline-glow" id="exportHistoryBtn"><i class="fas fa-download me-2"></i>Export CSV</button>
+            </div>
+            <div class="timeline-modern">
+                ${mockSearches.length === 0 ? '<div class="glass-card p-5 text-center">✨ No searches yet. Generate your first knowledge pack!</div>' : 
+                    mockSearches.map(s => `
+                        <div class="history-item d-flex justify-content-between align-items-center flex-wrap">
+                            <div><i class="fas fa-search me-2 text-info"></i><strong>${escapeHtml(s.keyword)}</strong><br><small class="text-secondary">${s.date} at ${s.time} • ${s.execution_time}s</small></div>
+                            <div><span class="badge bg-success me-2">${s.status}</span><span class="badge bg-secondary me-2">${s.views} views</span>
+                            <button class="btn btn-sm btn-outline-warning me-1" onclick="toggleFavorite(${s.id})"><i class="fa${s.isFavorite ? 's' : 'r'} fa-star"></i></button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSearch(${s.id})"><i class="fas fa-trash-alt"></i></button>
+                            <button class="btn btn-sm btn-outline-info ms-1" onclick="viewDetails(${s.id})"><i class="fas fa-eye"></i> View</button></div>
+                        </div>
+                    `).join('')}
+            </div>
+        `,
+        stats: () => `
+            <h1 class="fw-bold mb-4"><i class="fas fa-chart-line me-3 gradient-text"></i><span class="gradient-text">Analytics Dashboard</span></h1>
+            <div class="row g-4">
+                <div class="col-md-3"><div class="stat-glow"><h3 class="gradient-text">${userStats.totalSearches}</h3><small>Total Searches</small></div></div>
+                <div class="col-md-3"><div class="stat-glow"><h3 class="gradient-text">${userStats.favorites}</h3><small>Favorites</small></div></div>
+                <div class="col-md-3"><div class="stat-glow"><h3 class="gradient-text">${userStats.avgTime}s</h3><small>Avg. Generation</small></div></div>
+                <div class="col-md-3"><div class="stat-glow"><h3 class="gradient-text">${userStats.totalViews}</h3><small>Total Views</small></div></div>
+            </div>
+            <div class="row mt-4">
+                <div class="col-lg-8"><div class="glass-card p-3"><canvas id="activityChart" height="250"></canvas></div></div>
+                <div class="col-lg-4"><div class="glass-card p-3"><h5 class="gradient-text">Top Keywords</h5><ul class="list-unstyled mt-3">${userStats.topKeywords.map(k => `<li class="mb-2"><i class="fas fa-tag me-2 text-cyan"></i>${k}</li>`).join('')}</ul></div></div>
+            </div>
+        `,
+        profile: () => `
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <div class="glass-card p-4 p-md-5">
+                        <div class="text-center"><i class="fas fa-user-circle fa-5x gradient-text mb-3"></i><h3>${currentUser.loggedIn ? currentUser.username : "Guest Explorer"}</h3></div>
+                        <form id="profileForm">
+                            <div class="mb-3"><label class="form-label">Full Name</label><input type="text" class="input-glow" placeholder="Enter your name" value="${currentUser.fullName || ''}" id="fullNameInput"></div>
+                            <div class="mb-3"><label class="form-label">Email</label><input type="email" class="input-glow" placeholder="your@email.com" value="guest@tkrag.demo" id="emailInput"></div>
+                            <div class="mb-3"><label class="form-label">Bio</label><textarea class="input-glow" rows="3" placeholder="Knowledge explorer ...">Curious mind, always learning.</textarea></div>
+                            <div class="text-center"><button type="button" class="btn-neon" id="saveProfileBtn"><i class="fas fa-save me-2"></i>Update Profile</button></div>
+                        </form>
+                        <div class="mt-4 pt-3 text-center"><button class="btn-outline-glow" id="demoLoginBtn"><i class="fas fa-sign-in-alt me-2"></i>${currentUser.loggedIn ? "Switch Account" : "Demo Login"}</button></div>
+                    </div>
+                </div>
+            </div>
+        `
+    };
+
+    function renderCurrentPage() {
+        const contentDiv = document.getElementById("pageContent");
+        if (!contentDiv) return;
+        let html = pages[currentPage] ? pages[currentPage]() : "<div class='glass-card p-5 text-center'>✨ Page coming soon</div>";
+        contentDiv.innerHTML = html;
+        
+        // After rendering, attach dynamic events
+        if (currentPage === "generate") attachGenerateEvents();
+        if (currentPage === "home") attachHomeEvents();
+        if (currentPage === "stats") setTimeout(() => drawStatsChart(), 100);
+        if (currentPage === "profile") attachProfileEvents();
+        if (currentPage === "history") { /* already global toggle/delete works */ }
+    }
+
+    function attachHomeEvents() {
+        document.getElementById("quickGenerateBtn")?.addEventListener("click", () => { currentPage = "generate"; renderCurrentPage(); });
+        document.getElementById("demoDashboardBtn")?.addEventListener("click", () => { showToast("✨ Real-time dashboard — activity spikes +23% today", "info"); });
+        document.querySelectorAll(".topic-chip").forEach(el => {
+            el.addEventListener("click", () => {
+                let topic = el.getAttribute("data-topic") || el.innerText;
+                document.getElementById("genTopic") ? document.getElementById("genTopic").value = topic : null;
+                currentPage = "generate";
+                renderCurrentPage();
+                setTimeout(() => { if(document.getElementById("genTopic")) document.getElementById("genTopic").value = topic; }, 50);
+            });
+        });
+    }
+
+    function attachGenerateEvents() {
+        document.getElementById("doGenerateBtn")?.addEventListener("click", () => {
+            let topicInput = document.getElementById("genTopic");
+            let topic = topicInput?.value.trim();
+            if (!topic) { showToast("Please enter a topic", "warning"); return; }
+            const progressDiv = document.getElementById("genProgress");
+            const fillDiv = document.getElementById("genFill");
+            if(progressDiv) progressDiv.classList.remove("d-none");
+            let width = 0;
+            const interval = setInterval(() => {
+                width += 10;
+                if(fillDiv) fillDiv.style.width = width + "%";
+                if(width >= 100) { clearInterval(interval); }
+            }, 120);
+            generateKnowledge(topic);
+            setTimeout(() => { if(progressDiv) progressDiv.classList.add("d-none"); if(fillDiv) fillDiv.style.width = "0%"; }, 1500);
+        });
+        document.querySelectorAll(".topic-chip").forEach(el => {
+            el.addEventListener("click", () => {
+                let topic = el.getAttribute("data-topic") || el.innerText;
+                let inp = document.getElementById("genTopic");
+                if(inp) inp.value = topic;
+            });
+        });
+    }
+
+    function attachProfileEvents() {
+        document.getElementById("saveProfileBtn")?.addEventListener("click", () => {
+            let name = document.getElementById("fullNameInput")?.value;
+            currentUser.fullName = name;
+            showToast("Profile updated successfully! 🎉", "success");
+        });
+        document.getElementById("demoLoginBtn")?.addEventListener("click", () => {
+            currentUser.loggedIn = !currentUser.loggedIn;
+            if(currentUser.loggedIn) {
+                currentUser.username = "neon_explorer";
+                showToast("✨ Logged in as neon_explorer — enjoy full features!", "success");
+            } else {
+                currentUser.username = "Guest";
+                showToast("Logged out (demo mode)", "info");
+            }
+            renderCurrentPage();
+        });
+    }
+
+    function drawStatsChart() {
+        const canvas = document.getElementById("activityChart");
+        if(!canvas) return;
+        const ctx = canvas.getContext("2d");
+        new Chart(ctx, {
+            type: 'line',
+            data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ label: 'Searches', data: [5, 9, 12, 8, 15, 7, 10], borderColor: '#00f5ff', backgroundColor: 'rgba(0,245,255,0.1)', tension: 0.4, fill: true }] },
+            options: { responsive: true, plugins: { legend: { labels: { color: '#ccc' } } }, scales: { y: { ticks: { color: '#aaa' } }, x: { ticks: { color: '#aaa' } } } }
+        });
+    }
+
+    function viewDetails(id) {
+        let found = mockSearches.find(s => s.id === id);
+        if(found) showToast(`🔍 Viewing details for "${found.keyword}" — full synthesis ready`, "info");
+        else showToast("Preview not available", "warning");
+    }
+
+    function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+    // navigation
+    document.querySelectorAll("[data-page]").forEach(link => {
+        link.addEventListener("click", (e) => {
+            e.preventDefault();
+            let page = link.getAttribute("data-page");
+            if(page && pages[page]) { currentPage = page; renderCurrentPage(); window.scrollTo({ top: 0, behavior: "smooth" }); }
+        });
+    });
+    document.getElementById("loginBtnNav")?.addEventListener("click", () => { currentPage = "profile"; renderCurrentPage(); });
+
+    // expose global helpers
+    window.toggleFavorite = toggleFavorite;
+    window.deleteSearch = deleteSearch;
+    window.viewDetails = viewDetails;
+
+    // initial render
+    renderCurrentPage();
+</script>
+</body>
+</html>

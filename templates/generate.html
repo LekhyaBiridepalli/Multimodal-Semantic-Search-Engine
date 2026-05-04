@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>TKAG-RAG | Generate Knowledge - AI-Powered Synthesis</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-start: #667eea;
+            --primary-end: #764ba2;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --bg-deep: #0a0f1f;
+            --card-glass: rgba(18, 28, 45, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-white: #ffffff;
+            --text-bright-cyan: #00ffff;
+            --text-bright-pink: #ff69b4;
+            --text-bright-yellow: #ffff00;
+            --text-bright-lime: #ccff00;
+            --text-bright-orange: #ffa500;
+            --success: #22c55e;
+            --danger: #ff4444;
+            --warning: #ffaa00;
+            --info: #00ccff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 20% 30%, #0a0a1a, #000000);
+            color: var(--text-white);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Animated vibrant background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 80% 20%, rgba(102, 126, 234, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 20% 80%, rgba(255, 105, 180, 0.25) 0%, transparent 55%),
+                radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.2) 0%, transparent 45%);
+            pointer-events: none;
+            z-index: 0;
+            animation: vibrantPulse 12s infinite alternate;
+        }
+
+        @keyframes vibrantPulse {
+            0% { opacity: 0.6; transform: scale(1); filter: brightness(0.8); }
+            100% { opacity: 1; transform: scale(1.08); filter: brightness(1.2); }
+        }
+
+        .glass-card {
+            background: var(--card-glass);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(102, 126, 234, 0.5);
+            border-radius: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            border-color: #ff69b4;
+            box-shadow: 0 0 35px rgba(255, 105, 180, 0.4);
+        }
+
+        .gradient-text {
+            background: linear-gradient(120deg, #00ffff, #ff69b4, #ffff00);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+            text-shadow: 0 0 10px rgba(0,255,255,0.3);
+        }
+
+        /* Topic Cards - Bright Colors */
+        .topic-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid rgba(0, 255, 255, 0.4);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+        }
+
+        .topic-card:hover {
+            transform: translateY(-10px);
+            border-color: #ff69b4;
+            background: rgba(102, 126, 234, 0.25);
+            box-shadow: 0 15px 35px rgba(255, 105, 180, 0.5);
+        }
+
+        .topic-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #667eea, #ff69b4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.6);
+        }
+
+        .topic-card:hover .topic-icon {
+            transform: scale(1.15);
+            box-shadow: 0 0 25px #ff69b4;
+        }
+
+        .topic-card h5 {
+            color: #ffff00;
+            font-weight: 700;
+            text-shadow: 0 0 5px rgba(255,255,0,0.5);
+        }
+
+        .topic-card small {
+            color: #00ffff !important;
+            font-weight: 500;
+        }
+
+        /* Progress Steps - Bright Colors */
+        .progress-steps {
+            padding: 0.5rem;
+        }
+
+        .progress-step {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 0.8rem 1rem;
+            border-radius: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            transition: all 0.3s;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .progress-step.active {
+            background: rgba(102, 126, 234, 0.25);
+            border-left: 4px solid #ff69b4;
+            border-color: #ff69b4;
+        }
+
+        .step-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 0 15px currentColor;
+        }
+
+        .youtube-bg { background: linear-gradient(135deg, #ff0000, #ff4444); box-shadow: 0 0 15px #ff0000; }
+        .books-bg { background: linear-gradient(135deg, #00ff00, #44ff44); box-shadow: 0 0 15px #00ff00; color: #000; }
+        .papers-bg { background: linear-gradient(135deg, #00ccff, #44ffff); box-shadow: 0 0 15px #00ccff; }
+        .graph-bg { background: linear-gradient(135deg, #ff66ff, #ff99ff); box-shadow: 0 0 15px #ff66ff; }
+        .pdf-bg { background: linear-gradient(135deg, #ff4444, #ff6666); box-shadow: 0 0 15px #ff4444; }
+
+        .step-content h6 {
+            margin-bottom: 0.25rem;
+            font-weight: 700;
+            color: #ffff00;
+            text-shadow: 0 0 3px rgba(255,255,0,0.5);
+        }
+
+        .step-content small {
+            color: #00ffff !important;
+            font-weight: 600;
+        }
+
+        .progress {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, #00ffff, #ff69b4);
+            border-radius: 10px;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 5px #00ffff;
+        }
+
+        .animated-text {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            animation: brightPulse 1s infinite;
+            color: #ffff00;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(255,255,0,0.8);
+        }
+
+        @keyframes brightPulse {
+            0%, 100% { opacity: 0.8; text-shadow: 0 0 5px #ffff00; }
+            50% { opacity: 1; text-shadow: 0 0 20px #ffff00; }
+        }
+
+        /* Recent Searches - Bright */
+        .recent-card {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.25s;
+            border: 2px solid rgba(0, 255, 255, 0.4);
+            backdrop-filter: blur(5px);
+        }
+
+        .recent-card:hover {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #ff69b4;
+            transform: translateX(8px);
+            box-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+        }
+
+        .recent-card h6 {
+            color: #ffff00;
+            font-weight: 700;
+        }
+
+        .recent-card small {
+            color: #00ffff !important;
+            font-weight: 600;
+        }
+
+        .recent-card i {
+            color: #ff69b4;
+            font-size: 1.3rem;
+        }
+
+        /* Input styling - Bright */
+        .input-group-custom .input-group-text {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ffff;
+            border-right: none;
+            color: #00ffff;
+            border-radius: 1rem 0 0 1rem;
+            font-weight: bold;
+        }
+
+        .form-control-lg-custom {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #00ffff;
+            border-left: none;
+            color: #ffff00;
+            padding: 0.875rem 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .form-control-lg-custom:focus {
+            background: rgba(0, 0, 0, 0.8);
+            border-color: #ff69b4;
+            box-shadow: 0 0 15px rgba(255, 105, 180, 0.5);
+            color: #ffffff;
+        }
+
+        .form-control-lg-custom::placeholder {
+            color: #88aaff;
+            font-weight: 500;
+        }
+
+        .btn-primary-gradient {
+            background: linear-gradient(135deg, #667eea, #ff69b4);
+            border: none;
+            padding: 0.875rem 2rem;
+            border-radius: 1rem;
+            font-weight: 700;
+            transition: all 0.3s;
+            color: white;
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        .btn-primary-gradient:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(255, 105, 180, 0.8);
+            background: linear-gradient(135deg, #ff69b4, #667eea);
+        }
+
+        .btn-primary-gradient:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Toast Notification - Bright */
+        .toast-notify {
+            position: fixed;
+            top: 90px;
+            right: 24px;
+            z-index: 9999;
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            padding: 0.9rem 1.3rem;
+            min-width: 280px;
+            border-left: 5px solid;
+            animation: slideIn 0.3s ease;
+            font-weight: 600;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(50px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        /* Text Colors - Bright & Visible */
+        h1, h2, h3, h4, h5, h6 {
+            font-weight: 700;
+        }
+
+        .lead {
+            color: #88ccff !important;
+            font-weight: 500;
+            text-shadow: 0 0 5px rgba(0,100,255,0.5);
+        }
+
+        .form-label {
+            color: #ffff00 !important;
+            font-weight: 700;
+            text-shadow: 0 0 3px rgba(255,255,0,0.5);
+        }
+
+        .form-text {
+            color: #88aaff !important;
+            font-weight: 500;
+        }
+
+        .text-secondary-emphasis {
+            color: #ccccff !important;
+        }
+
+        .card-header h5 {
+            color: #ffff00 !important;
+        }
+
+        .badge {
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .progress-step {
+                flex-direction: column;
+                text-align: center;
+            }
+            .step-icon {
+                margin-bottom: 0.5rem;
+            }
+            .topic-icon {
+                width: 55px;
+                height: 55px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation is handled by base.html, content below -->
+    <div class="container py-4" style="position: relative; z-index: 2;">
+        <!-- Header Section -->
+        <div class="row mb-5">
+            <div class="col-12 text-center" data-aos="fade-down">
+                <h1 class="display-4 fw-bold mb-3">
+                    <span class="gradient-text">Generate Knowledge</span>
+                </h1>
+                <p class="lead fs-4">
+                    <i class="fas fa-magic me-2" style="color: #ff69b4;"></i>
+                    Enter any topic — get AI-synthesized insights from videos, books, and research papers
+                </p>
+            </div>
+        </div>
+
+        <!-- Search Section -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-md-8" data-aos="fade-up">
+                <div class="glass-card p-4">
+                    <form id="knowledgeForm" method="POST" action="{{ url_for('generate') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label class="form-label fs-5 mb-2">
+                                <i class="fas fa-brain me-2" style="color: #ff69b4;"></i>What do you want to explore? <small class="ms-2" style="font-weight: 500; font-size: 0.85rem; color: #88aaff;">(Topic, Paper Title, or Abstract)</small>
+                            </label>
+                            <div class="input-group input-group-custom">
+                                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                <textarea class="form-control form-control-lg-custom" 
+                                       id="topic" 
+                                       name="topic" 
+                                       placeholder="Enter a topic, a specific paper title, or paste a full abstract here..."
+                                       required
+                                       rows="1"
+                                       style="height: auto; min-height: 58px; resize: none; overflow-y: hidden;"
+                                       oninput="this.style.height = ''; this.style.height = this.scrollHeight + 'px'"></textarea>
+                                <button class="btn btn-primary-gradient" type="submit" id="generateBtn">
+                                    <i class="fas fa-brain me-2"></i>
+                                    <span id="btnText">Generate</span>
+                                    <div class="spinner-border spinner-border-sm d-none ms-2" id="btnSpinner" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </button>
+                            </div>
+                            <div class="form-text mt-2">
+                                <i class="fas fa-info-circle me-1" style="color: #00ffff;"></i> Our AI searches YouTube, books, and academic papers to build a comprehensive knowledge package
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Section (hidden initially) -->
+        <div class="row justify-content-center mt-4 d-none" id="progressSection">
+            <div class="col-md-8" data-aos="fade-up">
+                <div class="glass-card p-4">
+                    <h5 class="text-center mb-4" style="color: #ffff00; text-shadow: 0 0 10px rgba(255,255,0,0.5);">
+                        <i class="fas fa-cog fa-spin me-2" style="color: #ff69b4;"></i>
+                        Generating Your Knowledge Package
+                    </h5>
+                    
+                    <div class="progress-steps">
+                        <div class="progress-step" id="step1">
+                            <div class="step-icon youtube-bg"><i class="fab fa-youtube"></i></div>
+                            <div class="step-content">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-1">Analyzing YouTube Videos</h6>
+                                    <small class="text-secondary" id="step1-status">Pending</small>
+                                </div>
+                                <div class="progress"><div class="progress-bar" id="step1-progress" style="width: 0%"></div></div>
+                            </div>
+                        </div>
+                        <div class="progress-step" id="step2">
+                            <div class="step-icon books-bg"><i class="fas fa-book"></i></div>
+                            <div class="step-content">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-1">Analyzing Books & Literature</h6>
+                                    <small class="text-secondary" id="step2-status">Pending</small>
+                                </div>
+                                <div class="progress"><div class="progress-bar" id="step2-progress" style="width: 0%"></div></div>
+                            </div>
+                        </div>
+                        <div class="progress-step" id="step3">
+                            <div class="step-icon papers-bg"><i class="fas fa-file-alt"></i></div>
+                            <div class="step-content">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-1">Research Papers & ArXiv</h6>
+                                    <small class="text-secondary" id="step3-status">Pending</small>
+                                </div>
+                                <div class="progress"><div class="progress-bar" id="step3-progress" style="width: 0%"></div></div>
+                            </div>
+                        </div>
+                        <div class="progress-step" id="step4">
+                            <div class="step-icon graph-bg"><i class="fas fa-project-diagram"></i></div>
+                            <div class="step-content">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-1">Building Temporal Knowledge Graph</h6>
+                                    <small class="text-secondary" id="step4-status">Pending</small>
+                                </div>
+                                <div class="progress"><div class="progress-bar" id="step4-progress" style="width: 0%"></div></div>
+                            </div>
+                        </div>
+                        <div class="progress-step" id="step5">
+                            <div class="step-icon pdf-bg"><i class="fas fa-file-pdf"></i></div>
+                            <div class="step-content">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-1">Generating PDF Report</h6>
+                                    <small class="text-secondary" id="step5-status">Pending</small>
+                                </div>
+                                <div class="progress"><div class="progress-bar" id="step5-progress" style="width: 0%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <div class="animated-text" id="progressMessage">
+                            <span>✨</span>
+                            <span>Preparing to synthesize knowledge...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Popular Topics Grid -->
+        <div class="row mt-5">
+            <div class="col-12 text-center mb-4" data-aos="fade-up">
+                <h3 class="h2 fw-bold">Popular <span class="gradient-text">Topics</span></h3>
+                <p class="fs-5" style="color: #88ccff;">Click any topic to start learning instantly</p>
+            </div>
+            
+            <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="topic-card card p-4 text-center h-100" onclick="selectTopic('Machine Learning')">
+                    <div class="topic-icon mx-auto mb-3"><i class="fas fa-robot fa-2x text-white"></i></div>
+                    <h5 class="fw-bold">Machine Learning</h5>
+                    <small>Algorithms, Models, Applications</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="150">
+                <div class="topic-card card p-4 text-center h-100" onclick="selectTopic('Quantum Computing')">
+                    <div class="topic-icon mx-auto mb-3"><i class="fas fa-atom fa-2x text-white"></i></div>
+                    <h5 class="fw-bold">Quantum Computing</h5>
+                    <small>Qubits, Quantum Algorithms</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="topic-card card p-4 text-center h-100" onclick="selectTopic('Blockchain')">
+                    <div class="topic-icon mx-auto mb-3"><i class="fas fa-link fa-2x text-white"></i></div>
+                    <h5 class="fw-bold">Blockchain</h5>
+                    <small>Cryptocurrency, Smart Contracts</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="250">
+                <div class="topic-card card p-4 text-center h-100" onclick="selectTopic('Climate Change')">
+                    <div class="topic-icon mx-auto mb-3"><i class="fas fa-globe-americas fa-2x text-white"></i></div>
+                    <h5 class="fw-bold">Climate Change</h5>
+                    <small>Environment, Sustainability</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="topic-card card p-4 text-center h-100" onclick="selectTopic('Neural Networks')">
+                    <div class="topic-icon mx-auto mb-3"><i class="fas fa-brain fa-2x text-white"></i></div>
+                    <h5 class="fw-bold">Neural Networks</h5>
+                    <small>Deep Learning, AI</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="350">
+                <div class="topic-card card p-4 text-center h-100" onclick="selectTopic('Data Science')">
+                    <div class="topic-icon mx-auto mb-3"><i class="fas fa-chart-bar fa-2x text-white"></i></div>
+                    <h5 class="fw-bold">Data Science</h5>
+                    <small>Analytics, Visualization</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="400">
+                <div class="topic-card card p-4 text-center h-100" onclick="selectTopic('Psychology')">
+                    <div class="topic-icon mx-auto mb-3"><i class="fas fa-heart fa-2x text-white"></i></div>
+                    <h5 class="fw-bold">Psychology</h5>
+                    <small>Mind, Behavior, Therapy</small>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="450">
+                <div class="topic-card card p-4 text-center h-100" onclick="selectTopic('Economics')">
+                    <div class="topic-icon mx-auto mb-3"><i class="fas fa-chart-line fa-2x text-white"></i></div>
+                    <h5 class="fw-bold">Economics</h5>
+                    <small>Markets, Finance, Policy</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Searches -->
+        {% if current_user.is_authenticated and recent_searches %}
+        <div class="row mt-5">
+            <div class="col-12" data-aos="fade-up">
+                <div class="glass-card">
+                    <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center p-4">
+                        <h5 class="mb-0"><i class="fas fa-history me-2" style="color: #ff69b4;"></i>Your Recent Searches</h5>
+                        <a href="{{ url_for('history') }}" class="btn btn-sm" style="background: linear-gradient(135deg, #667eea, #ff69b4); color: white; border-radius: 2rem; padding: 0.4rem 1.2rem;">View All <i class="fas fa-arrow-right ms-1"></i></a>
+                    </div>
+                    <div class="card-body pt-0 pb-4">
+                        <div class="row">
+                            {% for search in recent_searches[:4] %}
+                            <div class="col-md-3 mb-3">
+                                <div class="recent-card p-3" onclick="window.location.href='{{ url_for('result', search_id=search.id) }}'">
+                                    <i class="fas fa-search mb-2 d-block"></i>
+                                    <h6 class="mb-1 fw-semibold">{{ search.keyword|truncate(30) }}</h6>
+                                    <small>{{ search.created_at.strftime('%b %d, %Y') }}</small>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800, once: true, offset: 60 });
+
+        let progressInterval = null;
+
+        function showNotification(message, type = 'info') {
+            const existing = $('.toast-notify');
+            if (existing.length) existing.remove();
+            let borderColor = '#22c55e', icon = 'fa-check-circle';
+            if (type === 'danger') { borderColor = '#ff4444'; icon = 'fa-exclamation-triangle'; }
+            else if (type === 'warning') { borderColor = '#ffaa00'; icon = 'fa-exclamation-circle'; }
+            else if (type === 'info') { borderColor = '#00ccff'; icon = 'fa-info-circle'; }
+            const toast = $(`
+                <div class="toast-notify" style="border-left-color: ${borderColor};">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="fas ${icon}" style="color: ${borderColor}; font-size: 1.2rem;"></i>
+                        <div class="flex-grow-1 fw-semibold text-white">${message}</div>
+                        <button type="button" class="btn-close btn-close-white" aria-label="Close"></button>
+                    </div>
+                </div>
+            `);
+            $('body').append(toast);
+            toast.find('.btn-close').on('click', () => toast.remove());
+            setTimeout(() => toast.fadeOut(300, function() { $(this).remove(); }), 4000);
+        }
+
+        function updateStep(step, progress, status) {
+            $(`#step${step}-progress`).css('width', progress + '%');
+            $(`#step${step}-status`).text(status);
+            if (progress >= 100) {
+                $(`#step${step}`).addClass('active');
+            }
+        }
+
+        function startProgressSimulation() {
+            const stepsData = [
+                { step: 1, duration: 3200, name: 'YouTube' },
+                { step: 2, duration: 2800, name: 'Books' },
+                { step: 3, duration: 3800, name: 'Papers' },
+                { step: 4, duration: 2400, name: 'Graph' },
+                { step: 5, duration: 1800, name: 'PDF' }
+            ];
+            const messages = [
+                '🔍 Searching YouTube for top educational videos...',
+                '📚 Extracting insights from books and literature...',
+                '📄 Fetching latest research papers from ArXiv...',
+                '🧠 Building temporal knowledge graph connections...',
+                '📑 Generating beautiful PDF report with summaries...'
+            ];
+            let currentIdx = 0;
+            
+            function runStep(index) {
+                if (index >= stepsData.length) {
+                    clearInterval(progressInterval);
+                    $('#progressMessage').html(`<span>✅</span><span>Complete! Redirecting to results...</span>`);
+                    return;
+                }
+                const step = stepsData[index];
+                let progress = 0;
+                const interval = setInterval(() => {
+                    progress += Math.floor(100 / (step.duration / 100));
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        updateStep(step.step, 100, 'Complete ✓');
+                        if (index + 1 < messages.length) {
+                            $('#progressMessage').html(`<span>⚡</span><span>${messages[index + 1]}</span>`);
+                        }
+                        runStep(index + 1);
+                    } else {
+                        updateStep(step.step, progress, 'Processing...');
+                    }
+                }, 100);
+            }
+            $('#progressMessage').html(`<span>✨</span><span>${messages[0]}</span>`);
+            runStep(0);
+        }
+
+        function selectTopic(topic) {
+            $('#topic').val(topic);
+            $('#knowledgeForm').submit();
+        }
+
+        $(document).ready(function() {
+            $('#knowledgeForm').on('submit', function(e) {
+                const topic = $('#topic').val().trim();
+                if (!topic) {
+                    e.preventDefault();
+                    showNotification('Please enter a topic to explore', 'warning');
+                    return false;
+                }
+                if (topic.length > 2000) {
+                    e.preventDefault();
+                    showNotification('Input is too long (max 2000 characters)', 'warning');
+                    return false;
+                }
+                
+                $('#progressSection').removeClass('d-none');
+                $('#generateBtn').prop('disabled', true);
+                $('#btnText').text('Generating...');
+                $('#btnSpinner').removeClass('d-none');
+                
+                $('html, body').animate({
+                    scrollTop: $('#progressSection').offset().top - 80
+                }, 500);
+                
+                startProgressSimulation();
+                return true;
+            });
+            
+            $('#topic').on('input', function() {
+                let val = $(this).val();
+                if (val.length > 2000) {
+                    $(this).val(val.slice(0, 2000));
+                    showNotification('Maximum 2000 characters allowed', 'warning');
+                }
+            });
+            
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        $(function() {
+                            let type = '{{ category }}';
+                            if (type === 'error') type = 'danger';
+                            if (type === 'message') type = 'info';
+                            showNotification('{{ message|safe }}', type);
+                        });
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        });
+        
+        $(window).on('beforeunload', function() {
+            if (progressInterval) clearInterval(progressInterval);
+        });
+    </script>
+</body>
+</html>

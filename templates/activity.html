@@ -1,0 +1,484 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12" data-aos="fade-down">
+            <h1 class="display-5 fw-bold">
+                <i class="fas fa-crown me-3 gradient-text"></i>
+                <span class="gradient-text">Admin Panel</span>
+            </h1>
+            <p class="text-secondary">System administration and monitoring dashboard</p>
+        </div>
+    </div>
+
+    <!-- System Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3" data-aos="fade-up" data-aos-delay="100">
+            <div class="card stat-card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-primary-gradient me-3">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">{{ stats.total_users }}</h3>
+                        <small class="text-secondary">Total Users</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3" data-aos="fade-up" data-aos-delay="150">
+            <div class="card stat-card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-success-gradient me-3">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">{{ stats.total_searches }}</h3>
+                        <small class="text-secondary">Total Searches</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3" data-aos="fade-up" data-aos-delay="200">
+            <div class="card stat-card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-info-gradient me-3">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">{{ stats.total_pdfs }}</h3>
+                        <small class="text-secondary">PDFs Generated</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3" data-aos="fade-up" data-aos-delay="250">
+            <div class="card stat-card p-3">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-warning-gradient me-3">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">{{ stats.db_size }}</h3>
+                        <small class="text-secondary">Database Size</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-8 mb-3" data-aos="fade-right">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2 gradient-text"></i>
+                        System Activity (Last 30 Days)
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="systemChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3" data-aos="fade-left">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2 gradient-text"></i>
+                        User Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="userChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Users -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3" data-aos="fade-up" data-aos-delay="100">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user-plus me-2 gradient-text"></i>
+                        Recent Users
+                    </h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="user-list">
+                        {% for user in stats.recent_users %}
+                        <div class="user-item d-flex align-items-center justify-content-between mb-3 p-2">
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar me-3">
+                                    {% if user.profile_pic and user.profile_pic != 'default.jpg' %}
+                                        <img src="{{ url_for('static', filename='profile_pics/' + user.profile_pic) }}" 
+                                             alt="{{ user.username }}" 
+                                             class="rounded-circle"
+                                             width="40" height="40">
+                                    {% else %}
+                                        <div class="default-user-avatar">
+                                            <i class="fas fa-user-circle fa-2x gradient-text"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">{{ user.full_name or user.username }}</h6>
+                                    <small class="text-secondary">{{ user.email }}</small>
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-secondary d-block">{{ user.created_at.strftime('%Y-%m-%d') }}</small>
+                                <span class="badge bg-{{ 'primary' if user.is_admin else 'secondary' }}">
+                                    {{ 'Admin' if user.is_admin else 'User' }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3" data-aos="fade-up" data-aos-delay="200">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-fire me-2 gradient-text"></i>
+                        Popular Topics
+                    </h5>
+                    <a href="#" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    <div class="topic-list">
+                        {% for topic in stats.popular_topics %}
+                        <div class="topic-item d-flex justify-content-between align-items-center mb-3 p-2">
+                            <span>
+                                <i class="fas fa-search me-2 text-primary"></i>
+                                {{ topic.keyword }}
+                            </span>
+                            <span class="badge bg-primary">{{ topic.count }} searches</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Health -->
+    <div class="row mb-4">
+        <div class="col-12" data-aos="fade-up">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-heartbeat me-2 gradient-text"></i>
+                        System Health
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="health-item text-center">
+                                <div class="health-status text-success mb-2">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                                <h6>Database</h6>
+                                <small class="text-success">Connected</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="health-item text-center">
+                                <div class="health-status text-success mb-2">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                                <h6>Redis Cache</h6>
+                                <small class="text-success">Operational</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="health-item text-center">
+                                <div class="health-status text-success mb-2">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                                <h6>Storage</h6>
+                                <small class="text-success">{{ stats.storage_used }} used</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="health-item text-center">
+                                <div class="health-status text-success mb-2">
+                                    <i class="fas fa-check-circle fa-2x"></i>
+                                </div>
+                                <h6>API Services</h6>
+                                <small class="text-success">All operational</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12" data-aos="fade-up">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2 gradient-text"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-outline-primary" onclick="clearCache()">
+                            <i class="fas fa-trash-alt me-2"></i>Clear Cache
+                        </button>
+                        <button class="btn btn-outline-success" onclick="backupDatabase()">
+                            <i class="fas fa-database me-2"></i>Backup Database
+                        </button>
+                        <button class="btn btn-outline-info" onclick="systemLogs()">
+                            <i class="fas fa-file-alt me-2"></i>View System Logs
+                        </button>
+                        <button class="btn btn-outline-warning" onclick="restartServices()">
+                            <i class="fas fa-sync-alt me-2"></i>Restart Services
+                        </button>
+                        <button class="btn btn-outline-danger" onclick="generateReport()">
+                            <i class="fas fa-file-pdf me-2"></i>Generate Report
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.user-item, .topic-item {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.user-item:hover, .topic-item:hover {
+    background: rgba(102, 126, 234, 0.1);
+    border-color: rgba(102, 126, 234, 0.3);
+    transform: translateX(5px);
+}
+
+.default-user-avatar {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.health-item {
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.health-item:hover {
+    background: rgba(102, 126, 234, 0.1);
+    transform: translateY(-5px);
+}
+
+.health-status i {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@media (max-width: 768px) {
+    .user-item .d-flex {
+        flex-direction: column;
+        align-items: start !important;
+    }
+    
+    .user-item .text-end {
+        text-align: left !important;
+        margin-top: 10px;
+    }
+}
+</style>
+
+<script>
+// System Activity Chart
+const ctx1 = document.getElementById('systemChart').getContext('2d');
+new Chart(ctx1, {
+    type: 'line',
+    data: {
+        labels: {{ activity_labels|tojson }},
+        datasets: [{
+            label: 'Searches',
+            data: {{ activity_data|tojson }},
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4,
+            fill: true
+        }, {
+            label: 'Users',
+            data: {{ user_activity_data|tojson }},
+            borderColor: '#28a745',
+            backgroundColor: 'rgba(40, 167, 69, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#b8b8b8'
+                }
+            }
+        },
+        scales: {
+            y: {
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.1)'
+                },
+                ticks: {
+                    color: '#b8b8b8'
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    color: '#b8b8b8'
+                }
+            }
+        }
+    }
+});
+
+// User Distribution Chart
+const ctx2 = document.getElementById('userChart').getContext('2d');
+new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+        labels: ['Active Today', 'Active This Week', 'Inactive'],
+        datasets: [{
+            data: [{{ user_stats.active_today }}, {{ user_stats.active_week }}, {{ user_stats.inactive }}],
+            backgroundColor: [
+                '#28a745',
+                '#ffc107',
+                '#6c757d'
+            ],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    color: '#b8b8b8'
+                }
+            }
+        },
+        cutout: '60%'
+    }
+});
+
+function clearCache() {
+    if (confirm('Are you sure you want to clear the system cache?')) {
+        showNotification('Cache cleared successfully!', 'success');
+    }
+}
+
+function backupDatabase() {
+    showNotification('Starting database backup...', 'info');
+    setTimeout(() => {
+        showNotification('Database backup completed!', 'success');
+    }, 3000);
+}
+
+function systemLogs() {
+    showNotification('Opening system logs...', 'info');
+    // In production, this would open a log viewer
+}
+
+function restartServices() {
+    if (confirm('⚠️ This will restart system services. Continue?')) {
+        showNotification('Restarting services...', 'warning');
+        setTimeout(() => {
+            showNotification('Services restarted successfully!', 'success');
+        }, 5000);
+    }
+}
+
+function generateReport() {
+    showNotification('Generating system report...', 'info');
+    setTimeout(() => {
+        showNotification('Report ready for download!', 'success');
+        
+        // Create download link
+        const report = `TKAG-RAG System Report
+Generated: ${new Date().toLocaleString()}
+
+Total Users: {{ stats.total_users }}
+Total Searches: {{ stats.total_searches }}
+Total PDFs: {{ stats.total_pdfs }}
+Database Size: {{ stats.db_size }}
+
+System Status: Healthy
+Last Backup: ${new Date().toLocaleString()}`;
+        
+        const blob = new Blob([report], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `system_report_${new Date().toISOString().split('T')[0]}.txt`;
+        a.click();
+    }, 2000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>TKAG-RAG | Create Account</title>
+
+    <!-- Preconnect & Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap 5 + Icons + AOS (lightweight) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-start: #667eea;
+            --primary-end: #764ba2;
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --bg-deep: #0b1120;
+            --card-bg: rgba(18, 25, 45, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-white: #ffffff;
+            --text-muted: #cbd5e6;
+            --accent-glow: rgba(102, 126, 234, 0.5);
+            --success-bright: #22c55e;
+            --danger-bright: #ef4444;
+            --warning-bright: #f59e0b;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 10% 20%, #0a0f1f, #030617);
+            color: var(--text-white);
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* animated particle-like glow orbs */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(circle at 20% 40%, rgba(102, 126, 234, 0.25) 0%, transparent 40%),
+                radial-gradient(circle at 85% 70%, rgba(118, 75, 162, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 85%, rgba(240, 147, 251, 0.2) 0%, transparent 45%);
+            pointer-events: none;
+            z-index: 0;
+            animation: floatGlow 14s infinite alternate;
+        }
+
+        @keyframes floatGlow {
+            0% {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0.9;
+                transform: scale(1.05);
+            }
+        }
+
+        /* glassmorphism + clean blur */
+        .glass-panel {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.05) inset;
+        }
+
+        .gradient-text {
+            background: var(--primary-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        .btn-glow {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 2rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-glow:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 25px rgba(102, 126, 234, 0.5);
+            background: var(--secondary-gradient);
+        }
+
+        .form-control-glass {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 1.2rem;
+            padding: 0.8rem 1rem;
+            color: white;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .form-control-glass:focus {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: #8b74e8;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .form-control-glass::placeholder {
+            color: #a0aec0;
+            font-weight: 400;
+        }
+
+        .input-group-custom .input-group-text {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-right: none;
+            color: #a0b3d9;
+            border-radius: 1.2rem 0 0 1.2rem;
+        }
+
+        .input-group-custom .form-control-glass {
+            border-left: none;
+            border-radius: 0 1.2rem 1.2rem 0;
+        }
+
+        .toggle-password {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-left: none;
+            border-radius: 0 1.2rem 1.2rem 0;
+            color: #b9c8ff;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .toggle-password:hover {
+            background: rgba(102, 126, 234, 0.3);
+            color: white;
+        }
+
+        .password-strength-meter {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .strength-bar {
+            width: 0%;
+            height: 100%;
+            transition: width 0.25s ease;
+            border-radius: 10px;
+        }
+
+        .strength-weak {
+            background-color: #ef4444;
+            width: 25%;
+        }
+
+        .strength-medium {
+            background-color: #f59e0b;
+            width: 50%;
+        }
+
+        .strength-strong {
+            background-color: #22c55e;
+            width: 75%;
+        }
+
+        .strength-very-strong {
+            background-color: #10b981;
+            width: 100%;
+        }
+
+        .form-check-input:checked {
+            background-color: #667eea;
+            border-color: #667eea;
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.5);
+        }
+
+        .form-check-label a {
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .text-link-bright {
+            background: linear-gradient(120deg, #a78bfa, #c084fc);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+        }
+
+        .text-link-bright:hover {
+            background: linear-gradient(120deg, #c084fc, #e879f9);
+            background-clip: text;
+            -webkit-background-clip: text;
+        }
+
+        .notification-toast {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 380px;
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(12px);
+            border-left: 5px solid #22c55e;
+            border-radius: 1rem;
+            padding: 1rem 1.2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            animation: slideFade 0.3s ease forwards;
+        }
+
+        @keyframes slideFade {
+            from {
+                opacity: 0;
+                transform: translateX(40px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* nice hover for card */
+        .register-card {
+            transition: transform 0.25s ease, box-shadow 0.3s;
+        }
+
+        .register-card:hover {
+            transform: scale(1.01);
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.4);
+        }
+
+        @media (max-width: 576px) {
+            .glass-panel {
+                padding: 1.8rem !important;
+            }
+
+            .btn-glow {
+                font-size: 0.9rem;
+            }
+        }
+
+        .bg-bright-check {
+            accent-color: #667eea;
+        }
+
+        hr {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        a {
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Minimal floating navbar (clean) -->
+    <nav class="navbar navbar-expand-lg fixed-top py-3"
+        style="background: rgba(5, 10, 25, 0.75); backdrop-filter: blur(12px); border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-3" href="#">
+                <i class="fas fa-brain me-2"
+                    style="background: linear-gradient(135deg, #a78bfa, #ec489a); -webkit-background-clip: text; background-clip: text; color: transparent;"></i>
+                <span class="fw-bold"
+                    style="background: linear-gradient(135deg, #e2e8f0, #c7d2fe); -webkit-background-clip: text; background-clip: text; color: transparent;">TKAG-RAG</span>
+            </a>
+            <div class="ms-auto">
+                <a href="login" class="btn btn-outline-light btn-sm rounded-pill px-4"
+                    style="border-color: rgba(255,255,255,0.3);"><i class="fas fa-sign-in-alt me-1"></i> Login</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Register Section -->
+    <div class="container" style="padding-top: 100px; padding-bottom: 70px;">
+        <div class="row justify-content-center align-items-center min-vh-100 g-4">
+            <div class="col-lg-6 col-md-8" data-aos="fade-up" data-aos-duration="800">
+                <div class="glass-panel p-4 p-md-5 register-card">
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <span class="d-inline-flex p-3 rounded-4" style="background: rgba(102, 126, 234, 0.2);">
+                                <i class="fas fa-user-astronaut fa-3x"
+                                    style="background: linear-gradient(145deg, #c084fc, #8b5cf6); -webkit-background-clip: text; background-clip: text; color: transparent;"></i>
+                            </span>
+                        </div>
+                        <h2 class="fw-bold display-6">Join the <span class="gradient-text">Knowledge Revolution</span>
+                        </h2>
+                        <p class="text-muted mt-2" style="color: #cbd5e6 !important;">Start building your temporal
+                            knowledge graph</p>
+                    </div>
+
+                    <form id="registerForm" method="POST" action="{{ url_for('register') }}">
+                        <!-- hidden csrf token (simulated) -->
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                        <!-- Full Name -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold"><i class="fas fa-user-circle me-1 text-primary"></i>
+                                Full Name</label>
+                            <div class="input-group input-group-custom">
+                                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                <input type="text" class="form-control form-control-glass" id="full_name"
+                                    name="full_name" placeholder="Alex Morgan" value="" required>
+                            </div>
+                        </div>
+
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold"><i class="fas fa-at me-1 text-primary"></i>
+                                Username</label>
+                            <div class="input-group input-group-custom">
+                                <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                                <input type="text" class="form-control form-control-glass" id="username" name="username"
+                                    placeholder="alex_knowledge" value="" required>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold"><i class="fas fa-envelope me-1 text-primary"></i>
+                                Email address</label>
+                            <div class="input-group input-group-custom">
+                                <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                <input type="email" class="form-control form-control-glass" id="email" name="email"
+                                    placeholder="hello@tkrag.com" value="" required>
+                            </div>
+                        </div>
+
+                        <!-- Password field with toggle and strength -->
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold"><i class="fas fa-lock me-1 text-primary"></i>
+                                Password</label>
+                            <div class="input-group input-group-custom">
+                                <span class="input-group-text"><i class="fas fa-key"></i></span>
+                                <input type="password" class="form-control form-control-glass" id="password"
+                                    name="password" placeholder="Create strong password" required>
+                                <button class="toggle-password" type="button" data-target="password">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength-meter mt-2">
+                                <div id="strengthBar" class="strength-bar" style="width: 0%;"></div>
+                            </div>
+                            <small class="text-muted" style="font-size: 0.75rem;">Min. 6 chars · use uppercase, numbers
+                                for extra security</small>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold"><i class="fas fa-check-circle me-1 text-primary"></i>
+                                Confirm Password</label>
+                            <div class="input-group input-group-custom">
+                                <span class="input-group-text"><i class="fas fa-shield-alt"></i></span>
+                                <input type="password" class="form-control form-control-glass" id="confirm_password"
+                                    name="confirm_password" placeholder="Confirm password" required>
+                            </div>
+                            <div id="matchMessage" class="form-text mt-1" style="min-height: 26px;"></div>
+                        </div>
+
+                        <!-- Terms & Conditions bright style -->
+                        <div class="mb-4 form-check">
+                            <input type="checkbox" class="form-check-input bg-bright-check" id="termsCheckbox" required
+                                style="cursor: pointer;">
+                            <label class="form-check-label text-muted" for="termsCheckbox"
+                                style="color: #e2e8f0 !important;">
+                                I agree to the <a href="#" class="text-link-bright">Terms of Service</a> and
+                                <a href="#" class="text-link-bright">Privacy Policy</a>
+                            </label>
+                        </div>
+
+                        <!-- Submit Button with loader -->
+                        <button type="submit" class="btn btn-glow w-100 py-3 fs-6 fw-bold" id="registerBtn">
+                            <span id="btnText"><i class="fas fa-user-plus me-2"></i>Create Account</span>
+                            <div class="spinner-border spinner-border-sm d-none" id="btnSpinner" role="status"></div>
+                        </button>
+
+                        <div class="text-center mt-4">
+                            <p class="mb-0 text-muted">Already have an account?
+                                <a href="login" class="text-link-bright fw-semibold">Sign in →</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+                <div class="text-center mt-4 small text-secondary opacity-75">
+                    <i class="fas fa-shield-alt me-1"></i> Secure & encrypted · AI-powered knowledge hub
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+    <script>
+        AOS.init({ once: true, offset: 20, duration: 700 });
+
+        // Helper: show modern notification (bright & friendly)
+        function showNotification(message, type = 'success') {
+            const icon = type === 'success' ? 'fa-check-circle' : (type === 'danger' ? 'fa-exclamation-triangle' : 'fa-info-circle');
+            const bgColor = type === 'success' ? '#10b981' : (type === 'danger' ? '#ef4444' : '#f59e0b');
+            const notification = $(`
+                <div class="notification-toast" style="border-left-color: ${bgColor};">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="fas ${icon}" style="color: ${bgColor}; font-size: 1.4rem;"></i>
+                        <div class="flex-grow-1 fw-semibold text-white">${message}</div>
+                        <button type="button" class="btn-close btn-close-white" data-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            `);
+            $('body').append(notification);
+            setTimeout(() => {
+                notification.fadeOut(400, function () { $(this).remove(); });
+            }, 3800);
+            notification.find('.btn-close').on('click', function () { notification.remove(); });
+        }
+
+        // Password strength meter (vivid logic)
+        function updateStrengthMeter() {
+            let pwd = $('#password').val();
+            let strength = 0;
+            if (pwd.length >= 6) strength += 20;
+            if (pwd.length >= 10) strength += 15;
+            if (/[a-z]/.test(pwd)) strength += 15;
+            if (/[A-Z]/.test(pwd)) strength += 20;
+            if (/[0-9]/.test(pwd)) strength += 15;
+            if (/[^a-zA-Z0-9]/.test(pwd)) strength += 15;
+            strength = Math.min(100, strength);
+
+            let bar = $('#strengthBar');
+            bar.css('width', strength + '%');
+            if (strength < 30) {
+                bar.removeClass().addClass('strength-bar').css('background', '#ef4444');
+            } else if (strength < 55) {
+                bar.removeClass().addClass('strength-bar').css('background', '#f59e0b');
+            } else if (strength < 80) {
+                bar.removeClass().addClass('strength-bar').css('background', '#22c55e');
+            } else {
+                bar.removeClass().addClass('strength-bar').css('background', '#10b981');
+            }
+            return strength;
+        }
+
+        // password match live check
+        function validateMatch() {
+            let pwd = $('#password').val();
+            let confirm = $('#confirm_password').val();
+            if (confirm === "") {
+                $('#matchMessage').html('');
+                return false;
+            }
+            if (pwd === confirm && pwd.length > 0) {
+                $('#matchMessage').html('<i class="fas fa-check-circle text-success me-1"></i><span style="color:#86efac;">Passwords match</span>');
+                return true;
+            } else {
+                $('#matchMessage').html('<i class="fas fa-times-circle text-danger me-1"></i><span style="color:#fca5a5;">Passwords do not match</span>');
+                return false;
+            }
+        }
+
+        // Toggle password visibility
+        $('.toggle-password').on('click', function () {
+            let targetId = $(this).data('target');
+            let input = $('#' + targetId);
+            let icon = $(this).find('i');
+            if (input.attr('type') === 'password') {
+                input.attr('type', 'text');
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                input.attr('type', 'password');
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        });
+
+        // Real-time events
+        $('#password').on('keyup', function () {
+            updateStrengthMeter();
+            validateMatch();
+        });
+        $('#confirm_password').on('keyup', validateMatch);
+
+        // Frontend validation — submits the real form to Flask on success
+        $('#registerForm').on('submit', function (e) {
+            let fullName = $('#full_name').val().trim();
+            let username = $('#username').val().trim();
+            let email = $('#email').val().trim();
+            let password = $('#password').val();
+            let confirm = $('#confirm_password').val();
+            let terms = $('#termsCheckbox').is(':checked');
+
+            // clear previous inline errors
+            $('.is-invalid').removeClass('is-invalid');
+
+            let hasError = false;
+            if (!fullName) { $('#full_name').addClass('is-invalid'); hasError = true; showNotification('Please enter your full name', 'danger'); }
+            else if (!username) { $('#username').addClass('is-invalid'); hasError = true; showNotification('Username required', 'danger'); }
+            else if (username.length < 3) { $('#username').addClass('is-invalid'); hasError = true; showNotification('Username must be at least 3 characters', 'danger'); }
+            else if (!email || !email.includes('@')) { $('#email').addClass('is-invalid'); hasError = true; showNotification('Valid email required', 'danger'); }
+            else if (!password) { $('#password').addClass('is-invalid'); hasError = true; showNotification('Create a password', 'danger'); }
+            else if (password.length < 6) { $('#password').addClass('is-invalid'); hasError = true; showNotification('Password must be at least 6 characters', 'danger'); }
+            else if (password !== confirm) { $('#confirm_password').addClass('is-invalid'); hasError = true; showNotification('Passwords do not match!', 'danger'); }
+            else if (!terms) { hasError = true; showNotification('Please accept Terms & Privacy Policy', 'warning'); }
+
+            if (hasError) {
+                e.preventDefault();
+                return;
+            }
+
+            // Show loading state while the real POST submits to Flask
+            let btn = $('#registerBtn');
+            btn.prop('disabled', true);
+            $('#btnText').addClass('d-none');
+            $('#btnSpinner').removeClass('d-none');
+
+            // Allow the form to submit normally to the Flask /register route
+        });
+
+        // Ripple effect on button (elegant)
+        $('.btn-glow').on('click', function (e) {
+            let x = e.clientX - $(this).offset().left;
+            let y = e.clientY - $(this).offset().top;
+            let ripple = $('<span class="ripple-effect"></span>');
+            ripple.css({ left: x + 'px', top: y + 'px', position: 'absolute', background: 'rgba(255,255,255,0.5)', borderRadius: '50%', width: '20px', height: '20px', transform: 'scale(0)', transition: 'transform 0.4s', pointerEvents: 'none' });
+            $(this).css('position', 'relative').append(ripple);
+            setTimeout(() => ripple.css('transform', 'scale(12)'), 10);
+            setTimeout(() => ripple.remove(), 400);
+        });
+
+        // additional style for invalid fields
+        $('<style>').prop('type', 'text/css').html(`
+            .is-invalid {
+                border-color: #f87171 !important;
+                box-shadow: 0 0 0 2px rgba(239,68,68,0.3) !important;
+            }
+            .ripple-effect {
+                position: absolute;
+                border-radius: 50%;
+                background: white;
+                transform: scale(0);
+                animation: rippleAnim 0.5s linear;
+                pointer-events: none;
+            }
+            @keyframes rippleAnim {
+                to { transform: scale(12); opacity: 0; }
+            }
+            .btn-glow {
+                overflow: hidden;
+            }
+            .form-control-glass:focus {
+                background: rgba(255,255,255,0.12);
+            }
+        `).appendTo('head');
+
+        // simulate CSRF and fix any double toggle: ensure password fields are toggle friendly
+        $('.toggle-password').each(function () {
+            let targetField = $(this).data('target');
+            if (targetField) $(this).attr('data-target', targetField);
+        });
+
+        // additional live username/email validation demo (soft)
+        $('#username, #email').on('blur', function () {
+            let val = $(this).val();
+            if (val.length > 1 && $(this).attr('id') === 'username' && !/^[a-zA-Z0-9_]{3,20}$/.test(val)) {
+                $(this).addClass('is-invalid');
+                showNotification('Username: only letters, numbers, underscore (3-20 chars)', 'warning');
+            } else if ($(this).attr('id') === 'email' && val && !val.includes('@')) {
+                $(this).addClass('is-invalid');
+                showNotification('Please include an "@" in email address', 'warning');
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+        });
+
+        // initialize strength meter on load
+        updateStrengthMeter();
+
+        // on document ready any extra eye candy
+        $(document).ready(function () {
+            // pre-fill anything? no
+            $('.alert').delay(3000).fadeOut('slow');
+        });
+    </script>
+</body>
+
+</html>

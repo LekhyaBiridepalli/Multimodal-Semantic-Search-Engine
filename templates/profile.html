@@ -1,0 +1,446 @@
+{% extends "base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12" data-aos="fade-down">
+            <h1 class="display-5 fw-bold">
+                <i class="fas fa-user-circle me-3 gradient-text"></i>
+                <span class="gradient-text">My Profile</span>
+            </h1>
+            <p class="text-secondary">Manage your account settings and preferences</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Profile Sidebar -->
+        <div class="col-md-4 mb-4" data-aos="fade-right">
+            <div class="card">
+                <div class="card-body text-center">
+                    <div class="profile-avatar mb-3">
+                        {% if user.profile_pic and user.profile_pic != 'default.jpg' %}
+                            <img src="{{ url_for('static', filename='profile_pics/' + user.profile_pic) }}" 
+                                 alt="{{ user.username }}" 
+                                 class="rounded-circle img-fluid"
+                                 style="width: 150px; height: 150px; object-fit: cover;">
+                        {% else %}
+                            <div class="default-avatar mx-auto">
+                                <i class="fas fa-user-circle fa-5x gradient-text"></i>
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <h3 class="mb-1">{{ user.full_name or user.username }}</h3>
+                    <p class="text-secondary mb-3">@{{ user.username }}</p>
+                    
+                    <div class="profile-stats d-flex justify-content-around mb-3">
+                        <div class="stat-item">
+                            <h5 class="mb-0 gradient-text">{{ stats.total_searches }}</h5>
+                            <small class="text-secondary">Searches</small>
+                        </div>
+                        <div class="stat-item">
+                            <h5 class="mb-0 gradient-text">{{ stats.favorites }}</h5>
+                            <small class="text-secondary">Favorites</small>
+                        </div>
+                        <div class="stat-item">
+                            <h5 class="mb-0 gradient-text">{{ stats.days_joined }}</h5>
+                            <small class="text-secondary">Days</small>
+                        </div>
+                    </div>
+                    
+                    <hr class="bg-secondary">
+                    
+                    <div class="profile-info text-start">
+                        <p class="mb-2">
+                            <i class="fas fa-envelope me-2 text-secondary"></i>
+                            {{ user.email }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-calendar me-2 text-secondary"></i>
+                            Joined {{ user.created_at.strftime('%B %d, %Y') }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="fas fa-clock me-2 text-secondary"></i>
+                            Last active: {{ user.last_active.strftime('%Y-%m-%d %H:%M') if user.last_active else 'Never' }}
+                        </p>
+                        <p class="mb-0">
+                            <i class="fas fa-tag me-2 text-secondary"></i>
+                            Account type: <span class="badge bg-{{ 'primary' if user.is_admin else 'secondary' }}">
+                                {{ 'Administrator' if user.is_admin else 'Regular User' }}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Profile Edit Form -->
+        <div class="col-md-8" data-aos="fade-left">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-edit me-2 gradient-text"></i>
+                        Edit Profile
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data" id="profileForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-end-0">
+                                    <i class="fas fa-at text-secondary"></i>
+                                </span>
+                                <input type="text" 
+                                       class="form-control border-start-0" 
+                                       id="username" 
+                                       value="{{ user.username }}" 
+                                       readonly
+                                       disabled>
+                                <small class="form-text text-secondary ms-1">Username cannot be changed</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="full_name" class="form-label">Full Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-end-0">
+                                    <i class="fas fa-user text-secondary"></i>
+                                </span>
+                                <input type="text" 
+                                       class="form-control border-start-0" 
+                                       id="full_name" 
+                                       name="full_name" 
+                                       value="{{ user.full_name or '' }}"
+                                       placeholder="Enter your full name">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email Address</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-end-0">
+                                    <i class="fas fa-envelope text-secondary"></i>
+                                </span>
+                                <input type="email" 
+                                       class="form-control border-start-0" 
+                                       id="email" 
+                                       name="email" 
+                                       value="{{ user.email }}"
+                                       required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Bio</label>
+                            <textarea class="form-control" 
+                                      id="bio" 
+                                      name="bio" 
+                                      rows="4"
+                                      placeholder="Tell us about yourself...">{{ user.bio or '' }}</textarea>
+                            <div class="form-text text-secondary">
+                                <i class="fas fa-info-circle me-1"></i>
+                                Maximum 500 characters
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="profile_pic" class="form-label">Profile Picture</label>
+                            <input type="file" 
+                                   class="form-control" 
+                                   id="profile_pic" 
+                                   name="profile_pic" 
+                                   accept="image/*">
+                            <div class="form-text text-secondary">
+                                <i class="fas fa-image me-1"></i>
+                                Allowed: JPG, PNG, GIF. Max size: 2MB
+                            </div>
+                        </div>
+                        
+                        <hr class="bg-secondary">
+                        
+                        <h5 class="mb-3">
+                            <i class="fas fa-lock me-2 gradient-text"></i>
+                            Change Password
+                        </h5>
+                        
+                        <div class="mb-3">
+                            <label for="current_password" class="form-label">Current Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-end-0">
+                                    <i class="fas fa-lock text-secondary"></i>
+                                </span>
+                                <input type="password" 
+                                       class="form-control border-start-0" 
+                                       id="current_password" 
+                                       name="current_password"
+                                       placeholder="Enter current password">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="new_password" class="form-label">New Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-end-0">
+                                    <i class="fas fa-key text-secondary"></i>
+                                </span>
+                                <input type="password" 
+                                       class="form-control border-start-0" 
+                                       id="new_password" 
+                                       name="new_password"
+                                       placeholder="Enter new password">
+                            </div>
+                            <div class="password-strength-meter mt-2">
+                                <div id="password-strength" class="progress-bar" style="width: 0%; height: 5px;"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="confirm_password" class="form-label">Confirm New Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-transparent border-end-0">
+                                    <i class="fas fa-check-circle text-secondary"></i>
+                                </span>
+                                <input type="password" 
+                                       class="form-control border-start-0" 
+                                       id="confirm_password" 
+                                       name="confirm_password"
+                                       placeholder="Confirm new password">
+                            </div>
+                            <div id="password-match" class="form-text"></div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="saveBtn">
+                                <i class="fas fa-save me-2"></i>
+                                <span id="btnText">Save Changes</span>
+                                <div class="spinner-border spinner-border-sm d-none" id="btnSpinner" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Danger Zone -->
+            {% if not user.is_admin %}
+            <div class="card mt-4 border-danger" data-aos="fade-up">
+                <div class="card-header bg-danger bg-opacity-10">
+                    <h4 class="mb-0 text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Danger Zone
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="mb-1">Delete Account</h5>
+                            <p class="text-secondary mb-0">Once you delete your account, there is no going back. All your data will be permanently removed.</p>
+                        </div>
+                        <button class="btn btn-outline-danger" onclick="confirmDeleteAccount()">
+                            <i class="fas fa-trash me-2"></i>Delete Account
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.default-avatar {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.default-avatar i {
+    font-size: 5rem;
+    color: white;
+}
+
+.profile-stats {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1rem 0;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-item h5 {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.profile-info p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.form-control[readonly] {
+    background: rgba(255, 255, 255, 0.02);
+    cursor: not-allowed;
+}
+
+.password-strength-meter {
+    height: 5px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+#password-strength {
+    transition: width 0.3s ease;
+}
+
+.bg-danger {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+}
+
+.border-danger {
+    border-color: rgba(220, 53, 69, 0.3) !important;
+}
+
+@media (max-width: 768px) {
+    .profile-avatar .default-avatar {
+        width: 120px;
+        height: 120px;
+    }
+    
+    .default-avatar i {
+        font-size: 4rem;
+    }
+    
+    .stat-item h5 {
+        font-size: 1.2rem;
+    }
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    // Password strength meter
+    $('#new_password').on('keyup', function() {
+        let password = $(this).val();
+        let strength = 0;
+        
+        if (password.length >= 6) strength += 25;
+        if (password.match(/[a-z]+/)) strength += 25;
+        if (password.match(/[A-Z]+/)) strength += 25;
+        if (password.match(/[0-9]+/)) strength += 25;
+        
+        $('#password-strength').css('width', strength + '%');
+        
+        if (strength <= 25) {
+            $('#password-strength').removeClass('bg-success bg-warning').addClass('bg-danger');
+        } else if (strength <= 50) {
+            $('#password-strength').removeClass('bg-success bg-danger').addClass('bg-warning');
+        } else {
+            $('#password-strength').removeClass('bg-warning bg-danger').addClass('bg-success');
+        }
+    });
+    
+    // Password match validation
+    $('#confirm_password').on('keyup', function() {
+        let password = $('#new_password').val();
+        let confirm = $(this).val();
+        
+        if (password && confirm) {
+            if (password === confirm) {
+                $('#password-match').html('<i class="fas fa-check-circle text-success"></i> Passwords match');
+            } else {
+                $('#password-match').html('<i class="fas fa-times-circle text-danger"></i> Passwords do not match');
+            }
+        } else {
+            $('#password-match').empty();
+        }
+    });
+    
+    // Form submission
+    $('#profileForm').on('submit', function(e) {
+        let newPassword = $('#new_password').val();
+        let confirmPassword = $('#confirm_password').val();
+        
+        if (newPassword || confirmPassword) {
+            if (newPassword !== confirmPassword) {
+                e.preventDefault();
+                showNotification('Passwords do not match!', 'danger');
+                return;
+            }
+            
+            if (newPassword.length < 6) {
+                e.preventDefault();
+                showNotification('Password must be at least 6 characters', 'warning');
+                return;
+            }
+            
+            if (!$('#current_password').val()) {
+                e.preventDefault();
+                showNotification('Please enter current password', 'warning');
+                return;
+            }
+        }
+        
+        // Show loading state
+        $('#saveBtn').prop('disabled', true);
+        $('#btnText').text('Saving...');
+        $('#btnSpinner').removeClass('d-none');
+    });
+});
+
+function confirmDeleteAccount() {
+    if (confirm('⚠️ WARNING: This action cannot be undone!\n\nAre you absolutely sure you want to delete your account?')) {
+        if (confirm('This will permanently delete all your searches, favorites, and personal data. Type "DELETE" to confirm.')) {
+            showNotification('Account deletion feature coming soon!', 'info');
+        }
+    }
+}
+
+// Preview profile picture before upload
+document.getElementById('profile_pic').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        if (file.size > 2 * 1024 * 1024) {
+            showNotification('File too large. Max size: 2MB', 'warning');
+            this.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const avatar = document.querySelector('.profile-avatar img, .default-avatar');
+            if (avatar.tagName === 'IMG') {
+                avatar.src = e.target.result;
+            } else {
+                // Replace default avatar with image
+                const newImg = document.createElement('img');
+                newImg.src = e.target.result;
+                newImg.alt = 'Profile Picture';
+                newImg.className = 'rounded-circle img-fluid';
+                newImg.style.width = '150px';
+                newImg.style.height = '150px';
+                newImg.style.objectFit = 'cover';
+                avatar.parentNode.replaceChild(newImg, avatar);
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endblock %}

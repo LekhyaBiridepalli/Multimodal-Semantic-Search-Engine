@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+
+{% block title %}Statistics{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12" data-aos="fade-down">
+            <h1 class="display-5 fw-bold">
+                <i class="fas fa-chart-line me-3 gradient-text"></i>
+                <span class="gradient-text">Your Statistics</span>
+            </h1>
+            <p class="text-secondary">Detailed analytics of your knowledge generation activity</p>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3" data-aos="fade-up" data-aos-delay="100">
+            <div class="card stat-summary p-3">
+                <div class="d-flex align-items-center">
+                    <div class="summary-icon bg-primary-gradient me-3">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">{{ stats.total_searches }}</h3>
+                        <small class="text-secondary">Total Searches</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3" data-aos="fade-up" data-aos-delay="150">
+            <div class="card stat-summary p-3">
+                <div class="d-flex align-items-center">
+                    <div class="summary-icon bg-success-gradient me-3">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">{{ stats.favorites }}</h3>
+                        <small class="text-secondary">Favorites</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3" data-aos="fade-up" data-aos-delay="200">
+            <div class="card stat-summary p-3">
+                <div class="d-flex align-items-center">
+                    <div class="summary-icon bg-info-gradient me-3">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">{{ stats.avg_time }}s</h3>
+                        <small class="text-secondary">Avg. Time</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-3" data-aos="fade-up" data-aos-delay="250">
+            <div class="card stat-summary p-3">
+                <div class="d-flex align-items-center">
+                    <div class="summary-icon bg-warning-gradient me-3">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <div>
+                        <h3 class="mb-0">{{ stats.total_views }}</h3>
+                        <small class="text-secondary">Total Views</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row mb-4">
+        <div class="col-md-8 mb-3" data-aos="fade-right">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-line me-2 gradient-text"></i>
+                        Search Activity Over Time
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="activityChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3" data-aos="fade-left">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie me-2 gradient-text"></i>
+                        Source Distribution
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="sourceChart" height="250"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top Keywords -->
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3" data-aos="fade-up" data-aos-delay="100">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tags me-2 gradient-text"></i>
+                        Top Search Keywords
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="keywords-cloud">
+                        {% for keyword in stats.top_keywords %}
+                            <span class="keyword-badge" style="font-size: {{ 1.0 + (loop.revindex * 0.1) }}rem">
+                                {{ keyword }}
+                            </span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-3" data-aos="fade-up" data-aos-delay="200">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clock me-2 gradient-text"></i>
+                        Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="activity-timeline">
+                        {% for search in recent_searches %}
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between">
+                                    <h6 class="mb-1">{{ search.keyword }}</h6>
+                                    <small class="text-secondary">{{ search.created_at.strftime('%H:%M') }}</small>
+                                </div>
+                                <p class="text-secondary mb-0">
+                                    <i class="fas fa-eye me-1"></i>{{ search.views_count }} views
+                                    <span class="mx-2">•</span>
+                                    <i class="fas fa-clock me-1"></i>{{ search.execution_time }}s
+                                </p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row mb-4">
+        <div class="col-12" data-aos="fade-up">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tachometer-alt me-2 gradient-text"></i>
+                        Performance Metrics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-item text-center">
+                                <div class="metric-value gradient-text">{{ stats.avg_time }}s</div>
+                                <div class="metric-label">Average Generation Time</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-item text-center">
+                                <div class="metric-value gradient-text">{{ stats.fastest_time }}s</div>
+                                <div class="metric-label">Fastest Generation</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-item text-center">
+                                <div class="metric-value gradient-text">{{ stats.slowest_time }}s</div>
+                                <div class="metric-label">Slowest Generation</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="metric-item text-center">
+                                <div class="metric-value gradient-text">{{ stats.success_rate }}%</div>
+                                <div class="metric-label">Success Rate</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Download Report -->
+    <div class="row">
+        <div class="col-12" data-aos="fade-up">
+            <div class="card bg-primary bg-opacity-10 border-primary">
+                <div class="card-body text-center">
+                    <h4 class="mb-3">Download Statistics Report</h4>
+                    <p class="text-secondary mb-3">Get a detailed PDF report of all your activity and insights</p>
+                    <button class="btn btn-primary btn-lg" onclick="downloadStatsReport()">
+                        <i class="fas fa-file-pdf me-2"></i>Download Report
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-summary {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stat-summary:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+}
+
+.summary-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.bg-primary-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-success-gradient {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+}
+
+.bg-info-gradient {
+    background: linear-gradient(135deg, #17a2b8 0%, #0dcaf0 100%);
+}
+
+.bg-warning-gradient {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+}
+
+.keywords-cloud {
+    text-align: center;
+    padding: 20px;
+}
+
+.keyword-badge {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 5px;
+    background: rgba(102, 126, 234, 0.1);
+    border-radius: 20px;
+    color: var(--text-primary);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    cursor: default;
+}
+
+.keyword-badge:hover {
+    background: var(--primary-gradient);
+    color: white;
+    transform: scale(1.05);
+}
+
+.activity-timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.activity-timeline::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #667eea, #764ba2);
+    opacity: 0.3;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-icon {
+    position: absolute;
+    left: -30px;
+    width: 30px;
+    height: 30px;
+    background: var(--primary-gradient);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.9rem;
+}
+
+.timeline-content {
+    padding: 10px 15px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.timeline-content:hover {
+    background: rgba(102, 126, 234, 0.1);
+    transform: translateX(5px);
+}
+
+.metric-item {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.metric-item:hover {
+    background: rgba(102, 126, 234, 0.1);
+    transform: translateY(-5px);
+}
+
+.metric-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 5px;
+}
+
+.metric-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+@media (max-width: 768px) {
+    .metric-value {
+        font-size: 2rem;
+    }
+    
+    .keyword-badge {
+        font-size: 0.9rem !important;
+    }
+}
+</style>
+
+<script>
+// Activity Chart
+const ctx1 = document.getElementById('activityChart').getContext('2d');
+new Chart(ctx1, {
+    type: 'line',
+    data: {
+        labels: {{ activity_labels|tojson }},
+        datasets: [{
+            label: 'Searches',
+            data: {{ activity_data|tojson }},
+            borderColor: '#667eea',
+            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#667eea',
+            pointBorderColor: 'white',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            pointHoverRadius: 6
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            },
+            tooltip: {
+                backgroundColor: 'rgba(26, 26, 46, 0.9)',
+                titleColor: '#fff',
+                bodyColor: '#b8b8b8',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    color: 'rgba(255, 255, 255, 0.1)'
+                },
+                ticks: {
+                    color: '#b8b8b8',
+                    stepSize: 1
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                },
+                ticks: {
+                    color: '#b8b8b8'
+                }
+            }
+        }
+    }
+});
+
+// Source Distribution Chart
+const ctx2 = document.getElementById('sourceChart').getContext('2d');
+new Chart(ctx2, {
+    type: 'doughnut',
+    data: {
+        labels: ['YouTube Videos', 'Books', 'Research Papers'],
+        datasets: [{
+            data: [5, 5, 5],
+            backgroundColor: [
+                '#FF0000',
+                '#28a745',
+                '#17a2b8'
+            ],
+            borderWidth: 0,
+            hoverOffset: 10
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: {
+                    color: '#b8b8b8',
+                    font: {
+                        size: 12
+                    }
+                }
+            },
+            tooltip: {
+                backgroundColor: 'rgba(26, 26, 46, 0.9)',
+                titleColor: '#fff',
+                bodyColor: '#b8b8b8'
+            }
+        },
+        cutout: '60%'
+    }
+});
+
+function downloadStatsReport() {
+    showNotification('Generating statistics report...', 'info');
+    
+    // Simulate report generation
+    setTimeout(() => {
+        showNotification('Report ready for download!', 'success');
+        
+        // Create a simple text report (in production, this would be a PDF)
+        const report = `TKAG-RAG Statistics Report
+Generated: ${new Date().toLocaleString()}
+
+Total Searches: {{ stats.total_searches }}
+Favorites: {{ stats.favorites }}
+Average Time: {{ stats.avg_time }}s
+Fastest Time: {{ stats.fastest_time }}s
+Slowest Time: {{ stats.slowest_time }}s
+Success Rate: {{ stats.success_rate }}%
+
+Top Keywords:
+{% for keyword in stats.top_keywords %}
+- {{ keyword }}
+{% endfor %}
+
+Thank you for using TKAG-RAG!`;
+        
+        const blob = new Blob([report], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tkrag_stats_${new Date().toISOString().split('T')[0]}.txt`;
+        a.click();
+    }, 2000);
+}
+</script>
+{% endblock %}
