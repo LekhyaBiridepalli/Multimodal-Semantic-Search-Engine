@@ -16,16 +16,27 @@ class Config:
     DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
     TESTING = False
 
-    # ── Database (MySQL via Flask-SQLAlchemy) ────────────────────────────────
-    MYSQL_HOST     = os.environ.get('MYSQL_HOST',     'localhost')
-    MYSQL_USER     = os.environ.get('MYSQL_USER',     'root')
-    MYSQL_PASSWORD = os.environ.get('MYSQL_PASSWORD', 'root')
-    MYSQL_DB       = os.environ.get('MYSQL_DB',       'tkrag_db')
+    # ── Database (PostgreSQL via Flask-SQLAlchemy) ────────────────────────────────
+    # Support Render's DATABASE_URL or fallback to local settings
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+    
+    if DATABASE_URL:
+        # SQLAlchemy 1.4+ requires postgresql:// instead of postgres://
+        if DATABASE_URL.startswith("postgres://"):
+            DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+        SQLALCHEMY_DATABASE_URI = DATABASE_URL
+    else:
+        PG_HOST     = os.environ.get('PG_HOST',     'localhost')
+        PG_PORT     = os.environ.get('PG_PORT',     '5432')
+        PG_USER     = os.environ.get('PG_USER',     'postgres')
+        PG_PASSWORD = os.environ.get('PG_PASSWORD', 'postgresql')
+        PG_DB       = os.environ.get('PG_DB',       'tkrag')
 
-    SQLALCHEMY_DATABASE_URI = (
-        f"mysql+pymysql://{MYSQL_USER}:{MYSQL_PASSWORD}"
-        f"@{MYSQL_HOST}/{MYSQL_DB}"
-    )
+        SQLALCHEMY_DATABASE_URI = (
+            f"postgresql://{PG_USER}:{PG_PASSWORD}"
+            f"@{PG_HOST}:{PG_PORT}/{PG_DB}"
+        )
+
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_recycle': 300,

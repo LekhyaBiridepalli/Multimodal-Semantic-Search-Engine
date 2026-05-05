@@ -23,7 +23,7 @@ Built with Flask, this full-stack web application provides a rich, interactive d
 | Layer | Technology |
 |-------|-----------|
 | **Backend** | Flask (Python 3.8+) |
-| **Database** | MySQL (via SQLAlchemy + PyMySQL) |
+| **Database** | PostgreSQL (via SQLAlchemy + psycopg2) |
 | **LLM** | Google Gemini API |
 | **APIs** | YouTube Data API v3, Google Books API, Semantic Scholar API |
 | **NLP** | Sentence Transformers (`all-MiniLM-L6-v2`) |
@@ -38,7 +38,7 @@ Built with Flask, this full-stack web application provides a rich, interactive d
 ```
 ├── app.py                     # Flask application entry point (run this)
 ├── config.py                  # Configuration (reads from .env)
-├── database_setup.sql         # MySQL schema and seed data
+├── database_setup.sql         # PostgreSQL schema and seed data
 ├── requirements.txt           # Python dependencies
 ├── .env.example               # Environment variable template
 │
@@ -79,7 +79,7 @@ Built with Flask, this full-stack web application provides a rich, interactive d
 ### Prerequisites
 
 - **Python 3.8+** — [Download](https://www.python.org/downloads/)
-- **MySQL Server** — [Download](https://dev.mysql.com/downloads/mysql/)
+- **PostgreSQL Server** — [Download](https://www.postgresql.org/download/)
 - **Git** — [Download](https://git-scm.com/downloads)
 - **Google API Keys** (see [API Keys](#-api-keys-required) section below)
 
@@ -109,11 +109,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-> **Note:** On Windows, if `mysqlclient` fails to install, try:
-> ```bash
-> pip install pymysql
-> ```
-> PyMySQL is already used as the MySQL driver in this project.
+> **Note:** The project uses `psycopg2-binary` as the PostgreSQL adapter, which includes pre-compiled binaries and should install easily across operating systems.
 
 ### Step 4: Set Up Environment Variables
 
@@ -129,29 +125,31 @@ Open `.env` in a text editor and fill in your actual values:
 GOOGLE_API_KEY=your-google-api-key-here
 GEMINI_API_KEY=your-gemini-api-key-here
 SECRET_KEY=any-random-secret-string
-MYSQL_HOST=localhost
-MYSQL_USER=root
-MYSQL_PASSWORD=your-mysql-password
-MYSQL_DB=tkrag_db
+# For local development
+PG_HOST=localhost
+PG_PORT=5432
+PG_USER=postgres
+PG_PASSWORD=postgresql
+PG_DB=tkrag
+
+# For Render deployment
+# DATABASE_URL=postgresql://user:password@hostname/dbname
 ```
 
 ### Step 5: Set Up the Database
 
-1. **Start MySQL Server** (if not already running)
+1. **Start PostgreSQL Server** (if not already running) and ensure `tkrag` database is created.
+   ```bash
+   createdb -U postgres tkrag
+   ```
 
-2. **Create the database and tables** by running the setup script:
+2. **Initialize the database and tables** by running the setup script:
 
 ```bash
-mysql -u root -p < database_setup.sql
+python init_db.py
 ```
 
-Or, log into MySQL and run it manually:
-
-```sql
-source database_setup.sql;
-```
-
-This will create the `tkrag_db` database with all required tables and seed data (including a default admin user).
+This will create the `tkrag` database with all required tables and seed data (including a default admin user).
 
 ### Step 6: Run the Application
 
@@ -196,9 +194,9 @@ You will need the following API keys (all free tier):
 
 ## 🗄️ Database
 
-### MySQL Setup
+### PostgreSQL Setup
 
-The application uses MySQL as its primary database. The `database_setup.sql` script creates:
+The application uses PostgreSQL as its primary database. The `database_setup.sql` script creates:
 
 - **`users`** — User accounts with authentication
 - **`search_history`** — Search queries, results (JSON), summaries, and PDF paths
@@ -211,8 +209,8 @@ The application uses MySQL as its primary database. The `database_setup.sql` scr
 
 ```
 Host: localhost
-Port: 3306
-Database: tkrag_db
+Port: 5432
+Database: tkrag
 ```
 
 Configure these in your `.env` file.
@@ -236,10 +234,10 @@ The system uses pre-trained NLP models that are **downloaded automatically** on 
 
 ## 🔧 Troubleshooting
 
-### MySQL Connection Errors
-- Ensure MySQL server is running: `mysql -u root -p`
-- Verify credentials in `.env` match your MySQL setup
-- Check that `tkrag_db` database exists: `SHOW DATABASES;`
+### PostgreSQL Connection Errors
+- Ensure PostgreSQL server is running: `psql -U postgres`
+- Verify credentials in `.env` match your PostgreSQL setup
+- Check that `tkrag` database exists: `\l`
 
 ### Model Download Issues
 - Check internet connection
@@ -251,11 +249,8 @@ The system uses pre-trained NLP models that are **downloaded automatically** on 
 - Check API quotas in [Google Cloud Console](https://console.cloud.google.com/apis/dashboard)
 - YouTube/Books API has a daily quota — if exceeded, the system falls back to generated content
 
-### `mysqlclient` Installation Fails (Windows)
-```bash
-pip install pymysql
-```
-The project already uses `pymysql` as the MySQL driver, so `mysqlclient` is optional.
+### `psycopg2` Installation Fails
+The project uses `psycopg2-binary` which comes with pre-compiled binaries. If it fails, make sure you're using a compatible Python version or try installing PostgreSQL development headers for your OS.
 
 ### Port Already in Use
 ```bash
