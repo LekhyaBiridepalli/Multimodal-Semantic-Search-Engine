@@ -372,7 +372,7 @@ def generate():
             
             # Generate knowledge
             start_time = time.time()
-            knowledge = synthesizer.synthesize(topic)
+            knowledge = get_synthesizer().synthesize(topic)
             execution_time = round(time.time() - start_time, 2)
             
             # Save to history
@@ -458,7 +458,7 @@ def api_generate():
     try:
         # Generate knowledge
         start_time = time.time()
-        knowledge = synthesizer.synthesize(topic)
+        knowledge = get_synthesizer().synthesize(topic)
         execution_time = round(time.time() - start_time, 2)
         
         # Save to history
