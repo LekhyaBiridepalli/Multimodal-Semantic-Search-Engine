@@ -1295,9 +1295,11 @@ if __name__ == '__main__':
         print(f" Debug mode: {'ON' if getattr(Config, 'DEBUG', True) else 'OFF'}")
     
     # Run app
+    port = int(os.environ.get("PORT", 10000))
+   
     app.run(
         host='0.0.0.0',
-        port=getattr(Config, 'PORT', 5000),
-        debug=getattr(Config, 'DEBUG', True),
-        threaded=True
+        port=port,
+        debug=False
     )
+    
