@@ -1047,67 +1047,135 @@ class PapersRetriever:
         return papers
 
 
+# class SemanticRanker:
+#     """
+#     Re-ranks retrieved results by semantic similarity to the user query.
+#     Uses sentence-transformers (all-MiniLM-L6-v2) for fast, lightweight embeddings.
+#     """
+    
+#     _model = None  # class-level cache so model loads only once per process
+    
+#     @classmethod
+#     def get_model(cls):
+#         if cls._model is None:
+#             print("    Loading semantic model (first time only)...")
+#             cls._model = SentenceTransformer('all-MiniLM-L6-v2')
+#             print("    Semantic model loaded")
+#         return cls._model
+    
+#     def rank(self, query: str, items: list, text_key: str, top_k: int = 5) -> list:
+#         """
+#         Re-rank a list of dicts by semantic similarity to query.
+#         """
+#         if not items:
+#             return items
+        
+#         model = self.get_model()
+        
+#         # Get text from each item (fallback through multiple keys)
+#         texts = []
+#         for item in items:
+#             text = item.get(text_key, '')
+#             if not text:
+#                 # fallback keys
+#                 text = item.get('description', item.get('summary', item.get('abstract', '')))
+#             texts.append(text[:512])  # truncate to avoid memory issues
+        
+#         # Embed query and all results in one batch (efficient)
+#         all_texts = [query] + texts
+#         embeddings = model.encode(all_texts, convert_to_numpy=True, 
+#                                    show_progress_bar=False)
+        
+#         query_embedding = embeddings[0]
+#         result_embeddings = embeddings[1:]
+        
+#         # Cosine similarity
+#         def cosine_sim(a, b):
+#             return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-8))
+        
+#         # Score each result
+#         scored = []
+#         for i, item in enumerate(items):
+#             score = cosine_sim(query_embedding, result_embeddings[i])
+#             scored.append((score, item))
+        
+#         # Sort descending by score
+#         scored.sort(key=lambda x: x[0], reverse=True)
+        
+#         # Add relevance score to each item for display
+#         ranked = []
+#         for score, item in scored[:top_k]:
+#             item['semantic_score'] = round(score, 3)
+#             ranked.append(item)
+        
+#         return ranked
+
 class SemanticRanker:
     """
-    Re-ranks retrieved results by semantic similarity to the user query.
-    Uses sentence-transformers (all-MiniLM-L6-v2) for fast, lightweight embeddings.
+    Re-ranks retrieved results.
+    On Render Free, local transformer embeddings are disabled to avoid memory crashes.
     """
-    
-    _model = None  # class-level cache so model loads only once per process
-    
+
+    _model = None
+
     @classmethod
     def get_model(cls):
+        if not USE_LOCAL_EMBEDDINGS:
+            return None
+
         if cls._model is None:
-            print("    Loading semantic model (first time only)...")
-            cls._model = SentenceTransformer('all-MiniLM-L6-v2')
+            print("    Loading semantic model...")
+            cls._model = SentenceTransformer("all-MiniLM-L6-v2")
             print("    Semantic model loaded")
         return cls._model
-    
+
     def rank(self, query: str, items: list, text_key: str, top_k: int = 5) -> list:
-        """
-        Re-rank a list of dicts by semantic similarity to query.
-        """
         if not items:
             return items
-        
+
+        if not USE_LOCAL_EMBEDDINGS:
+            query_words = set(query.lower().split())
+
+            def simple_score(item):
+                text = item.get(text_key, "") or item.get("description", "") or item.get("summary", "") or item.get("abstract", "")
+                text_words = set(text.lower().split())
+                return len(query_words.intersection(text_words))
+
+            ranked = sorted(items, key=simple_score, reverse=True)
+            for item in ranked[:top_k]:
+                item["semantic_score"] = 0.0
+            return ranked[:top_k]
+
         model = self.get_model()
-        
-        # Get text from each item (fallback through multiple keys)
+
         texts = []
         for item in items:
-            text = item.get(text_key, '')
+            text = item.get(text_key, "")
             if not text:
-                # fallback keys
-                text = item.get('description', item.get('summary', item.get('abstract', '')))
-            texts.append(text[:512])  # truncate to avoid memory issues
-        
-        # Embed query and all results in one batch (efficient)
+                text = item.get("description", item.get("summary", item.get("abstract", "")))
+            texts.append(text[:512])
+
         all_texts = [query] + texts
-        embeddings = model.encode(all_texts, convert_to_numpy=True, 
-                                   show_progress_bar=False)
-        
+        embeddings = model.encode(all_texts, convert_to_numpy=True, show_progress_bar=False)
+
         query_embedding = embeddings[0]
         result_embeddings = embeddings[1:]
-        
-        # Cosine similarity
+
         def cosine_sim(a, b):
             return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b) + 1e-8))
-        
-        # Score each result
+
         scored = []
         for i, item in enumerate(items):
             score = cosine_sim(query_embedding, result_embeddings[i])
             scored.append((score, item))
-        
-        # Sort descending by score
+
         scored.sort(key=lambda x: x[0], reverse=True)
-        
-        # Add relevance score to each item for display
+
         ranked = []
         for score, item in scored[:top_k]:
-            item['semantic_score'] = round(score, 3)
+            item["semantic_score"] = round(score, 3)
             ranked.append(item)
-        
+
         return ranked
 
 ##Adding
