@@ -1252,6 +1252,22 @@ def time_ago_filter(date):
     return 'just now'
 
 # ==================== Main Entry Point ====================
+with app.app_context():
+    db.create_all()
+
+    if not User.query.filter_by(is_admin=True).first():
+        admin = User(
+            username='admin',
+            email='admin@tkrag.com',
+            full_name='Administrator',
+            is_admin=True,
+            is_active=True,
+            created_at=datetime.now()
+        )
+        admin.set_password('admin123')
+        db.session.add(admin)
+        db.session.commit()
+        
 if __name__ == '__main__':
     # Create database tables
     with app.app_context():
