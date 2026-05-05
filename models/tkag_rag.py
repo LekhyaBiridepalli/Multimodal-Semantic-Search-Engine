@@ -455,8 +455,17 @@ import difflib
 import youtube_transcript_api
 from bs4 import BeautifulSoup
 import feedparser
-from sentence_transformers import SentenceTransformer
-import numpy as np
+import os
+
+USE_LOCAL_EMBEDDINGS = os.getenv("USE_LOCAL_EMBEDDINGS", "false").lower() == "true"
+
+if USE_LOCAL_EMBEDDINGS:
+    from sentence_transformers import SentenceTransformer
+    import numpy as np
+else:
+    SentenceTransformer = None
+    np = None
+    
 import yt_dlp
 from utils.llm_summarizer import LLMSummarizer
 
