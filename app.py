@@ -46,10 +46,17 @@ login_manager.login_message_category = 'info'
 login_manager.session_protection = 'strong'
 
 # Initialize TKAG-RAG synthesizer
-synthesizer = KnowledgeSynthesizer(
-    api_key=Config.YOUTUBE_API_KEY,  # Single API key for both YouTube and Books
-    gemini_api_key=Config.GEMINI_API_KEY  # Gemini LLM for intelligent summaries
-)
+synthesizer = None
+
+def get_synthesizer():
+    global synthesizer
+    if synthesizer is None:
+        synthesizer = KnowledgeSynthesizer(
+            api_key=Config.YOUTUBE_API_KEY,
+            gemini_api_key=Config.GEMINI_API_KEY
+        )
+    return synthesizer
+
 
 # Ensure required directories exist
 REQUIRED_DIRS = [
