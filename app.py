@@ -20,7 +20,6 @@ from werkzeug.middleware.profiler import ProfilerMiddleware
 
 from config import Config
 from models.database import db, User, SearchHistory, Favorite, KnowledgeGraph, ActivityLog
-from models.tkag_rag import KnowledgeSynthesizer
 from utils.pdf_generator import PDFGenerator
 from utils.helpers import (
     save_profile_pic, allowed_file, format_datetime, 
@@ -45,12 +44,17 @@ login_manager.login_message = 'Please log in to access this page.'
 login_manager.login_message_category = 'info'
 login_manager.session_protection = 'strong'
 
-# Initialize TKAG-RAG synthesizer
+# Initialize TKAG-RAG synthesizer lazily.
+# IMPORTANT for Render: importing/loading ML models before Gunicorn opens
+# the web port can cause the "No open ports detected" deploy failure.
 synthesizer = None
 
 def get_synthesizer():
+    """Load the heavy TKAG-RAG synthesizer only when generation is requested."""
     global synthesizer
     if synthesizer is None:
+        from models.tkag_rag import KnowledgeSynthesizer
+
         synthesizer = KnowledgeSynthesizer(
             api_key=Config.YOUTUBE_API_KEY,
             gemini_api_key=Config.GEMINI_API_KEY
@@ -154,6 +158,11 @@ def handle_errors(f):
     return decorated_function
 
 # ==================== Routes ====================
+
+@app.route('/health')
+def health_check():
+    """Simple health check route for Render. Does not touch database or ML models."""
+    return jsonify({'status': 'ok'}), 200
 
 # Public Routes
 @app.route('/')
@@ -1259,22 +1268,6 @@ def time_ago_filter(date):
     return 'just now'
 
 # ==================== Main Entry Point ====================
-with app.app_context():
-    db.create_all()
-
-    if not User.query.filter_by(is_admin=True).first():
-        admin = User(
-            username='admin',
-            email='admin@tkrag.com',
-            full_name='Administrator',
-            is_admin=True,
-            is_active=True,
-            created_at=datetime.now()
-        )
-        admin.set_password('admin123')
-        db.session.add(admin)
-        db.session.commit()
-        
 if __name__ == '__main__':
     # Create database tables
     with app.app_context():
