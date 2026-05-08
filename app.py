@@ -45,8 +45,6 @@ login_manager.login_message_category = 'info'
 login_manager.session_protection = 'strong'
 
 # Initialize TKAG-RAG synthesizer lazily.
-# IMPORTANT for Render: importing/loading ML models before Gunicorn opens
-# the web port can cause the "No open ports detected" deploy failure.
 synthesizer = None
 
 def get_synthesizer():
